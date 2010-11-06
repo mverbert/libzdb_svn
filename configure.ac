@@ -109,6 +109,18 @@ AC_ARG_ENABLE(profiling,
     ]
 )
 
+AC_ARG_ENABLE(libdl, 
+              AS_HELP_STRING([--enable-libdl],
+              [Use libdl to dynamic load database drivers]),
+              [AC_CHECK_LIB([dl], [dlopen], [libdl="yes"], [libdl="no"])],
+              [libdl="no"]
+)
+if test "xyes" = "x$libdl"; then
+        AC_DEFINE([HAVE_LIBDL], 1, [Define to 1 to enable libdl])
+fi
+
+AM_CONDITIONAL([WITH_LIBDL], test "xyes" = "x$libdl")
+
 AC_ARG_ENABLE([openssl],
         AS_HELP_STRING([--enable-openssl(=<path>)], 
                 [Link libzdb with openssl. If database libraries were linked static,
@@ -205,6 +217,7 @@ AC_ARG_WITH([mysql],
 if test "xyes" = "x$mysql"; then
         svd_CPPFLAGS=$CPPFLAGS
         svd_LDFLAGS=$LDFLAGS
+        svd_LIBS=$LIBS
         CPPFLAGS="`$MYSQLCONFIG --include` $CPPFLAGS"
         LDFLAGS="`$MYSQLCONFIG --libs` $LDFLAGS"
         AC_CHECK_HEADERS([mysql.h])
@@ -226,13 +239,15 @@ if test "xyes" = "x$mysql"; then
                 fi
         ], [mysql="no"], [-lz])
         if test "xyes" = "x$mysql"; then
-                DBCPPFLAGS="$DBCPPFLAGS `$MYSQLCONFIG --include`"
-                DBLDFLAGS="$DBLDFLAGS `$MYSQLCONFIG --libs`"
+                DB_MYSQL_CPPFLAGS="`$MYSQLCONFIG --include`"
+                DB_MYSQL_LDFLAGS="`$MYSQLCONFIG --libs` -lz"
                 AC_DEFINE([HAVE_LIBMYSQLCLIENT], 1, [Define to 1 to enable mysql])
-        else
-                CPPFLAGS=$svd_CPPFLAGS
-                LDFLAGS=$svd_LDFLAGS
+                AC_SUBST(DB_MYSQL_LDFLAGS)
+                AC_SUBST(DB_MYSQL_CPPFLAGS)
         fi
+        CPPFLAGS=$svd_CPPFLAGS
+        LDFLAGS=$svd_LDFLAGS
+        LIBS=$svd_LIBS
 fi
 AM_CONDITIONAL([WITH_MYSQL], test "xyes" = "x$mysql")
 
@@ -273,13 +288,14 @@ if test "xyes" = "x$postgresql"; then
         LDFLAGS="-L`$PGCONFIG --libdir` $LDFLAGS"
         AC_CHECK_HEADERS([libpq-fe.h], [], [postgresql="no"])
         if test "xyes" = "x$postgresql"; then
-                DBCPPFLAGS="$DBCPPFLAGS -I`$PGCONFIG --includedir`"
-                DBLDFLAGS="$DBLDFLAGS -L`$PGCONFIG --libdir` -lpq"
+                DB_POSTGRESQL_CPPFLAGS="-I`$PGCONFIG --includedir`"
+                DB_POSTGRESQL_LDFLAGS="-L`$PGCONFIG --libdir` -lpq"
                 AC_DEFINE([HAVE_LIBPQ], 1, [Define to 1 to enable postgresql])
-        else
-                CPPFLAGS=$svd_CPPFLAGS
-                LDFLAGS=$svd_LDFLAGS
+                AC_SUBST(DB_POSTGRESQL_LDFLAGS)
+                AC_SUBST(DB_POSTGRESQL_CPPFLAGS)
         fi
+        CPPFLAGS=$svd_CPPFLAGS
+        LDFLAGS=$svd_LDFLAGS
 fi
 AM_CONDITIONAL([WITH_POSTGRESQL], test "xyes" = "x$postgresql")
 
@@ -294,51 +310,52 @@ AC_ARG_WITH([sqlite],
                 sqlite="no"
         else
                 AC_MSG_RESULT([yes])
-                svd_LDFLAGS=$LDFLAGS
-                svd_CPPFLAGS=$CPPFLAGS
-                LDFLAGS="-L$with_sqlite/lib $LDFLAGS"
-                CPPFLAGS="-I$with_sqlite/include $CPPFLAGS"
-                AC_CHECK_HEADERS([sqlite3.h], [
-                        sqlite="yes"
-                        if test -r "$with_sqlite/lib/libsqlite3.a"; then
-                                DBCPPFLAGS="$DBCPPFLAGS -I$with_sqlite/include"
-                                DBLDFLAGS="$DBLDFLAGS -L$with_sqlite/lib/ -lsqlite3"
-                        else
-                                sqlite="no"
-                        fi
-                ], [sqlite="no"])
-                LDFLAGS=$svd_LDFLAGS
-                CPPFLAGS=$svd_CPPFLAGS
         fi
         ], 
         [
-                AC_MSG_RESULT([yes])
-                AC_CHECK_LIB([sqlite3], [sqlite3_open], [], [sqlite="no"])
+               AC_MSG_RESULT([yes])
         ])
+
 if test "xyes" = "x$sqlite"; then
-        AC_DEFINE([HAVE_LIBSQLITE3])
+       svd_LDFLAGS=$LDFLAGS
+       svd_CPPFLAGS=$CPPFLAGS
+       svd_LIBS=$LIBS
+       CPPFLAGS="-I$with_sqlite/include $CPPFLAGS"
+       LDFLAGS="-L$with_sqlite/lib $LDFLAGS"
+       AC_CHECK_HEADERS([sqlite3.h], [sqlite="yes"], [sqlite="no"])
+       AC_CHECK_LIB([sqlite3], [sqlite3_open], [], [sqlite="no"])
+       if test "xyes" = "x$sqlite"; then
+            DB_SQLITE_CPPFLAGS="-I$with_sqlite/include"
+            DB_SQLITE_LDFLAGS="-L$with_sqlite/lib/ -lsqlite3"
+            AC_SUBST(DB_SQLITE_CPPFLAGS)
+            AC_SUBST(DB_SQLITE_LDFLAGS)                        
+       fi
+       LDFLAGS=$svd_LDFLAGS
+       CPPFLAGS=$svd_CPPFLAGS
+       LIBS=$svd_LIBS
 fi
+
 AM_CONDITIONAL([WITH_SQLITE], test "xyes" = "x$sqlite")
 
 oracle="yes"
 AC_MSG_CHECKING(for oracle)
 AX_LIB_ORACLE_OCI
 if test -n "$ORACLE_OCI_CFLAGS" -a -n "$ORACLE_OCI_LDFLAGS"; then
-    DBCPPFLAGS="$DBCPPFLAGS $ORACLE_OCI_CFLAGS"
-    DBLDFLAGS="$DBLDFLAGS $ORACLE_OCI_LDFLAGS"
+    DB_ORACLE_CPPFLAGS="$ORACLE_OCI_CFLAGS"
+    DB_ORACLE_LDFLAGS="$ORACLE_OCI_LDFLAGS"
     AC_DEFINE([HAVE_ORACLE], 1, [Define to 1 to enable oracle])
+    AC_SUBST(DB_ORACLE_CPPFLAGS)
+    AC_SUBST(DB_ORACLE_LDFLAGS)
 else
         oracle="no"
 fi
 AM_CONDITIONAL([WITH_ORACLE], test "xyes" = "x$oracle")
 
 # Test if any database system was found
-if test "xno" = "x$postgresql" -a "xno" = "x$mysql" -a "xno" = "x$sqlite" -a "xno" = "x$oracle"; then
-        AC_MSG_ERROR([No available database found or selected. Try configure --help])
+if test "xno" = "x$postgresql" -a "xno" = "x$mysql" -a "xno" = "x$sqlite" -a "xno" = "x$oracle" -a "xno" = "x$libdl" ; then
+        AC_MSG_ERROR([No available database found or selected, and dynamic loading disabled. Try configure --help])
 fi
 
-AC_SUBST(DBLDFLAGS)
-AC_SUBST(DBCPPFLAGS)
 
 # ---------------------------------------------------------------------------
 # Header files 
@@ -412,6 +429,11 @@ if test "xfalse" = "x$profile"; then
 echo "|   Profiling:                                    DISABLED   |"
 else
 echo "|   Profiling:                                    ENABLED    |"
+fi
+if test "xno" = "x$libdl"; then
+echo "|   Dynamically load drivers:                     DISABLED   |"
+else
+echo "|   Dynamically load drivers:                     ENABLED    |"
 fi
 if test "xfalse" = "x$zild_protect"; then
 echo "|   Zild:                                         DISABLED   |"

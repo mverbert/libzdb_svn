@@ -14,7 +14,7 @@ RE2C		= @RE2C@
 RE2CFLAGS       = -b
 FILTERH         = ./tools/bin/filterh
 
-AM_CPPFLAGS     = $(CPPFLAGS) $(DBCPPFLAGS)
+AM_CPPFLAGS     = 
 INCLUDES        = -Isrc -Isrc/util -Isrc/net -Isrc/db -Isrc/exceptions
 
 lib_LTLIBRARIES = libzdb.la
@@ -23,29 +23,75 @@ libzdb_la_SOURCES = src/util/Util.c src/util/Str.c src/util/Mem.c \
                     src/db/Connection.c src/db/ResultSet.c \
                     src/db/PreparedStatement.c src/util/StringBuffer.c \
                     src/exceptions/assert.c src/exceptions/Exception.c
-
 if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
+
+libzdb_la_LDFLAGS =
+noinst_LTLIBRARIES =
+libzdb_la_LIBADD = 
+
+if WITH_LIBDL
+libzdb_la_LDFLAGS += -ldl
+endif
+
 if WITH_MYSQL
-libzdb_la_SOURCES += src/db/mysql/MysqlConnection.c \
-                     src/db/mysql/MysqlResultSet.c \
-                     src/db/mysql/MysqlPreparedStatement.c
+if WITH_LIBDL
+lib_LTLIBRARIES += libzdb-mysql.la
+else
+noinst_LTLIBRARIES += libzdb-mysql.la
+libzdb_la_LIBADD += libzdb-mysql.la
 endif
+
+libzdb_mysql_la_SOURCES = src/db/mysql/MysqlConnection.c \
+		          src/db/mysql/MysqlResultSet.c \
+		          src/db/mysql/MysqlPreparedStatement.c
+libzdb_mysql_la_CPPFLAGS = $(DB_MYSQL_CPPFLAGS)
+libzdb_mysql_la_LDFLAGS = $(DB_MYSQL_LDFLAGS)
+endif # WITH_MYSQL
+
 if WITH_POSTGRESQL
-libzdb_la_SOURCES += src/db/postgresql/PostgresqlConnection.c \
-                     src/db/postgresql/PostgresqlResultSet.c \
-                     src/db/postgresql/PostgresqlPreparedStatement.c
+if WITH_LIBDL
+lib_LTLIBRARIES += libzdb-postgresql.la
+else
+noinst_LTLIBRARIES += libzdb-postgresql.la
+libzdb_la_LIBADD += libzdb-postgresql.la
 endif
+libzdb_postgresql_la_SOURCES = src/db/postgresql/PostgresqlConnection.c \
+		               src/db/postgresql/PostgresqlResultSet.c \
+		               src/db/postgresql/PostgresqlPreparedStatement.c
+libzdb_postgresql_la_CPPFLAGS = $(DB_POSTGRESQL_CPPFLAGS)
+libzdb_postgresql_la_LDFLAGS = $(DB_POSTGRESQL_LDFLAGS)
+endif # WITH_POSTGRESQL
+
 if WITH_SQLITE
-libzdb_la_SOURCES += src/db/sqlite/SQLiteConnection.c \
-                     src/db/sqlite/SQLiteResultSet.c \
-                     src/db/sqlite/SQLitePreparedStatement.c
+if WITH_LIBDL
+lib_LTLIBRARIES += libzdb-sqlite.la
+else
+noinst_LTLIBRARIES += libzdb-sqlite.la
+libzdb_la_LIBADD += libzdb-sqlite.la
 endif
+
+libzdb_sqlite_la_SOURCES = src/db/sqlite/SQLiteConnection.c \
+		           src/db/sqlite/SQLiteResultSet.c \
+		           src/db/sqlite/SQLitePreparedStatement.c
+libzdb_sqlite_la_CPPFLAGS = $(DB_SQLITE_CPPFLAGS)
+libzdb_sqlite_la_LDFLAGS = $(DB_SQLITE_LDFLAGS)
+endif # WITH_SQLITE
+
 if WITH_ORACLE
-libzdb_la_SOURCES += src/db/oracle/OracleConnection.c \
-                     src/db/oracle/OracleResultSet.c \
-                     src/db/oracle/OraclePreparedStatement.c
+if WITH_LIBDL
+lib_LTLIBRARIES += libzdb-oracle.la
+else
+noinst_LTLIBRARIES += libzdb-oracle.la
+libzdb_la_LIBADD += libzdb-oracle.la
+endif
+
+libzdb_oracle_la_SOURCES = src/db/oracle/OracleConnection.c \
+		           src/db/oracle/OracleResultSet.c \
+		           src/db/oracle/OraclePreparedStatement.c
+libzdb_oracle_la_CPPFLAGS = $(DB_ORACLE_CPPFLAGS)
+libzdb_oracle_la_LDFLAGS = $(DB_ORACLE_LDFLAGS)
 endif
 
 
@@ -55,7 +101,7 @@ API_INTERFACES  = src/zdb.h src/db/ConnectionPool.h src/db/Connection.h \
 
 nobase_nodist_include_HEADERS = $(patsubst %, $(LIBRARY_NAME)/%, $(notdir $(API_INTERFACES)))
 
-libzdb_la_LDFLAGS = $(DBLDFLAGS) -version-info 7:1:0
+AM_LDFLAGS = -version-info 7:1:0
 
 BUILT_SOURCES   = $(nobase_nodist_include_HEADERS)
 

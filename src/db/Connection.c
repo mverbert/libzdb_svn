@@ -18,7 +18,9 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <dlfcn.h>
 
+#include "StringBuffer.h"
 #include "URL.h"
 #include "Vector.h"
 #include "ResultSet.h"
@@ -38,34 +40,11 @@
 /* ----------------------------------------------------------- Definitions */
 
 
-#ifdef HAVE_LIBMYSQLCLIENT
-extern const struct Cop_T mysqlcops;
-#endif
-#ifdef HAVE_LIBPQ
-extern const struct Cop_T postgresqlcops;
-#endif
-#ifdef HAVE_LIBSQLITE3
-extern const struct Cop_T sqlite3cops;
-#endif
-#ifdef HAVE_ORACLE
-extern const struct Cop_T oraclesqlcops;
-#endif
+static Vector_T cops;
 
-static const struct Cop_T *cops[] = {
-#ifdef HAVE_LIBMYSQLCLIENT
-        &mysqlcops,
-#endif
-#ifdef HAVE_LIBPQ
-        &postgresqlcops,
-#endif
-#ifdef HAVE_LIBSQLITE3
-        &sqlite3cops,
-#endif
-#ifdef HAVE_ORACLE
-        &oraclesqlcops,
-#endif
-        NULL
-};
+static void __attribute__ ((constructor (200))) init_cops() {
+  cops = Vector_new(1);
+}
 
 #define T Connection_T
 struct T {
@@ -87,10 +66,28 @@ struct T {
 
 
 static Cop_T getOp(const char *protocol) {
-        for (int i = 0; cops[i]; i++) 
-                if (Str_startsWith(protocol, cops[i]->name)) 
-                        return (Cop_T)cops[i];
-        return NULL;
+  int e = 0;
+  do {
+    for (int i = 0; i < Vector_size(cops); i++) {
+      Cop_T op = (Cop_T) Vector_get(cops, i);
+      if (Str_startsWith(protocol, op->name))
+        return op;
+    }
+    if (e > 0)
+      break;
+    {
+      StringBuffer_T fn = StringBuffer_new("libzdb-");
+      StringBuffer_append(fn, protocol);
+      StringBuffer_append(fn, ".so");
+      void * lib = dlopen(StringBuffer_toString(fn), RTLD_LAZY);
+      StringBuffer_free(&fn);
+      if (lib)
+        e++;
+      else
+        break;
+    }
+  } while (true);
+  return NULL;
 }
 
 
@@ -341,5 +338,11 @@ const char *Connection_getLastError(T C) {
 
 int Connection_isSupported(const char *url) {
         return (url ? (getOp(url) != NULL) : false);
+}
+
+
+
+void ConnectionDelegate_register(Cop_T op) {
+  Vector_push(cops, op);
 }
 

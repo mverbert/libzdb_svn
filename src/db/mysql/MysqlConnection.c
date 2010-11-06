@@ -45,7 +45,7 @@
 
 #define MYSQL_OK 0
 
-const struct Cop_T mysqlcops = {
+static const struct Cop_T mysqlcops = {
         "mysql",
         MysqlConnection_new,
         MysqlConnection_free,
@@ -62,6 +62,10 @@ const struct Cop_T mysqlcops = {
         MysqlConnection_prepareStatement,
         MysqlConnection_getLastError
 };
+
+static void __attribute__ ((constructor (300))) register_mysql() {
+  ConnectionDelegate_register(&mysqlcops);
+}
 
 #define T ConnectionDelegate_T
 struct T {

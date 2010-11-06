@@ -44,7 +44,7 @@
 /* ----------------------------------------------------------- Definitions */
 
 
-const struct Cop_T oraclesqlcops = {
+static const struct Cop_T oraclesqlcops = {
         "oracle",
         OracleConnection_new,
         OracleConnection_free,
@@ -61,6 +61,10 @@ const struct Cop_T oraclesqlcops = {
         OracleConnection_prepareStatement,
         OracleConnection_getLastError
 };
+
+static void __attribute__ ((constructor (300))) register_oracle() {
+  ConnectionDelegate_register(&oraclesqlcops);
+}
 
 #define ERB_SIZE 152
 #define ORACLE_TRANSACTION_PERIOD 10

@@ -1,0 +1,11 @@
+libzdb (2.7) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- Matthieu Verbert <matthieu.verbert@aitb.org>  Thu, 14 Oct 2010 14:27:01 +0200
+
+libzdb (2.6-1) unstable; urgency=low
+
+  * Initial release (Closes: #466699)
+
+ -- Paul J Stevens <paul@nfg.nl>  Sun, 12 Jul 2009 13:01:08 +0000

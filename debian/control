@@ -1,0 +1,31 @@
+Source: libzdb
+Priority: extra
+Maintainer: Paul J Stevens <paul@nfg.nl>
+Build-Depends: debhelper (>= 5), autotools-dev, automake, autoconf, libsqlite3-dev, libpq-dev, libmysqlclient15-dev, libtool, flex, re2c
+Standards-Version: 3.8.2
+Section: libs
+
+Package: libzdb-dev
+Section: libdevel
+Architecture: any
+Depends: libzdb7 (= ${binary:Version})
+Description: Zild Database Library
+ A small and easy to use database API written in C.
+ .
+ This library provides thread safe connection pooling 
+ and exception handling. Currently supports MySQL, 
+ Sqlite3 and PostgreSQL
+ .
+ This package contains the development files.
+
+Package: libzdb7
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description:  Zild Database Library
+ A small and easy to use database API written in C.
+ .
+ This library provides thread safe connection pooling 
+ and exception handling. Currently supports MySQL, 
+ Sqlite3 and PostgreSQL
+

@@ -27,7 +27,10 @@ if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
 
-libzdb_la_LDFLAGS =
+LDFLAGS_VERSION = -version-info 7:1:0
+
+
+libzdb_la_LDFLAGS = $(LDFLAGS_VERSION)
 noinst_LTLIBRARIES =
 libzdb_la_LIBADD = 
 
@@ -47,7 +50,7 @@ libzdb_mysql_la_SOURCES = src/db/mysql/MysqlConnection.c \
 		          src/db/mysql/MysqlResultSet.c \
 		          src/db/mysql/MysqlPreparedStatement.c
 libzdb_mysql_la_CPPFLAGS = $(DB_MYSQL_CPPFLAGS)
-libzdb_mysql_la_LDFLAGS = $(DB_MYSQL_LDFLAGS)
+libzdb_mysql_la_LDFLAGS = $(DB_MYSQL_LDFLAGS) $(LDFLAGS_VERSION)
 endif # WITH_MYSQL
 
 if WITH_POSTGRESQL
@@ -61,7 +64,7 @@ libzdb_postgresql_la_SOURCES = src/db/postgresql/PostgresqlConnection.c \
 		               src/db/postgresql/PostgresqlResultSet.c \
 		               src/db/postgresql/PostgresqlPreparedStatement.c
 libzdb_postgresql_la_CPPFLAGS = $(DB_POSTGRESQL_CPPFLAGS)
-libzdb_postgresql_la_LDFLAGS = $(DB_POSTGRESQL_LDFLAGS)
+libzdb_postgresql_la_LDFLAGS = $(DB_POSTGRESQL_LDFLAGS) $(LDFLAGS_VERSION)
 endif # WITH_POSTGRESQL
 
 if WITH_SQLITE
@@ -76,7 +79,7 @@ libzdb_sqlite_la_SOURCES = src/db/sqlite/SQLiteConnection.c \
 		           src/db/sqlite/SQLiteResultSet.c \
 		           src/db/sqlite/SQLitePreparedStatement.c
 libzdb_sqlite_la_CPPFLAGS = $(DB_SQLITE_CPPFLAGS)
-libzdb_sqlite_la_LDFLAGS = $(DB_SQLITE_LDFLAGS)
+libzdb_sqlite_la_LDFLAGS = $(DB_SQLITE_LDFLAGS) $(LDFLAGS_VERSION)
 endif # WITH_SQLITE
 
 if WITH_ORACLE
@@ -91,7 +94,7 @@ libzdb_oracle_la_SOURCES = src/db/oracle/OracleConnection.c \
 		           src/db/oracle/OracleResultSet.c \
 		           src/db/oracle/OraclePreparedStatement.c
 libzdb_oracle_la_CPPFLAGS = $(DB_ORACLE_CPPFLAGS)
-libzdb_oracle_la_LDFLAGS = $(DB_ORACLE_LDFLAGS)
+libzdb_oracle_la_LDFLAGS = $(DB_ORACLE_LDFLAGS) $(LDFLAGS_VERSION)
 endif
 
 
@@ -100,8 +103,6 @@ API_INTERFACES  = src/zdb.h src/db/ConnectionPool.h src/db/Connection.h \
                   src/exceptions/SQLException.h src/exceptions/Exception.h
 
 nobase_nodist_include_HEADERS = $(patsubst %, $(LIBRARY_NAME)/%, $(notdir $(API_INTERFACES)))
-
-AM_LDFLAGS = -version-info 7:1:0
 
 BUILT_SOURCES   = $(nobase_nodist_include_HEADERS)
 

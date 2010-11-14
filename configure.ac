@@ -180,7 +180,7 @@ AC_SUBST(UNIT_TEST)
 # ---------------------------------------------------------------------------
 
 AC_CHECK_LIB([pthread], [pthread_create], [], [AC_MSG_ERROR([POSIX thread library is required])])
-AC_SEARCH_LIBS(crypt, crypt)
+#AC_SEARCH_LIBS(crypt, crypt)
 
 # Database Libraries 
 
@@ -231,16 +231,10 @@ if test "xyes" = "x$mysql"; then
                         return 0;
                 ]])
                 ],[mysql="yes"],[mysql="no"])
-                if test "$mysql" = "no"
-                then
-                        AC_MSG_RESULT([fail, >= 4.1 required])
-                else
-                        AC_CHECK_LIB([z], [compress],[],[mysql="no"])
-                fi
-        ], [mysql="no"], [-lz])
+        ], [mysql="no"], [])
         if test "xyes" = "x$mysql"; then
                 DB_MYSQL_CPPFLAGS="`$MYSQLCONFIG --include`"
-                DB_MYSQL_LDFLAGS="`$MYSQLCONFIG --libs` -lz"
+                DB_MYSQL_LDFLAGS="`$MYSQLCONFIG --libs`"
                 AC_DEFINE([HAVE_LIBMYSQLCLIENT], 1, [Define to 1 to enable mysql])
                 AC_SUBST(DB_MYSQL_LDFLAGS)
                 AC_SUBST(DB_MYSQL_CPPFLAGS)

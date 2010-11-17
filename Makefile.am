@@ -27,74 +27,77 @@ if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
 
-LDFLAGS_VERSION = -version-info 7:1:0
+libzdb_la_LDFLAGS = -version-info 7:1:0
+MODULE_NOVERSION= -module -avoid-version
 
-
-libzdb_la_LDFLAGS = $(LDFLAGS_VERSION)
+if ! WITH_LIBDL
 noinst_LTLIBRARIES =
 libzdb_la_LIBADD = 
-
-if WITH_LIBDL
+else
 libzdb_la_LDFLAGS += -ldl
+modules_LTLIBRARIES =
+modulesdir=$(libdir)/$(LIBRARY_NAME)
+libzdb_la_CPPFLAGS=-DMODULESDIR="\"$(modulesdir)\""
 endif
 
 if WITH_MYSQL
 if WITH_LIBDL
-lib_LTLIBRARIES += libzdb-mysql.la
+modules_LTLIBRARIES += mysql.la
 else
-noinst_LTLIBRARIES += libzdb-mysql.la
-libzdb_la_LIBADD += libzdb-mysql.la
+noinst_LTLIBRARIES += mysql.la
+libzdb_la_LIBADD += mysql.la
 endif
 
-libzdb_mysql_la_SOURCES = src/db/mysql/MysqlConnection.c \
+mysql_la_SOURCES = src/db/mysql/MysqlConnection.c \
 		          src/db/mysql/MysqlResultSet.c \
 		          src/db/mysql/MysqlPreparedStatement.c
-libzdb_mysql_la_CPPFLAGS = $(DB_MYSQL_CPPFLAGS)
-libzdb_mysql_la_LDFLAGS = $(DB_MYSQL_LDFLAGS) $(LDFLAGS_VERSION)
+mysql_la_CPPFLAGS = $(DB_MYSQL_CPPFLAGS)
+mysql_la_LDFLAGS = $(DB_MYSQL_LDFLAGS) $(MODULE_NOVERSION)
 endif # WITH_MYSQL
 
 if WITH_POSTGRESQL
 if WITH_LIBDL
-lib_LTLIBRARIES += libzdb-postgresql.la
+modules_LTLIBRARIES += postgresql.la
 else
-noinst_LTLIBRARIES += libzdb-postgresql.la
-libzdb_la_LIBADD += libzdb-postgresql.la
+noinst_LTLIBRARIES += postgresql.la
+libzdb_la_LIBADD += postgresql.la
 endif
-libzdb_postgresql_la_SOURCES = src/db/postgresql/PostgresqlConnection.c \
+postgresql_la_SOURCES = src/db/postgresql/PostgresqlConnection.c \
 		               src/db/postgresql/PostgresqlResultSet.c \
 		               src/db/postgresql/PostgresqlPreparedStatement.c
-libzdb_postgresql_la_CPPFLAGS = $(DB_POSTGRESQL_CPPFLAGS)
-libzdb_postgresql_la_LDFLAGS = $(DB_POSTGRESQL_LDFLAGS) $(LDFLAGS_VERSION)
+postgresql_la_CPPFLAGS = $(DB_POSTGRESQL_CPPFLAGS)
+postgresql_la_LDFLAGS = $(DB_POSTGRESQL_LDFLAGS) $(MODULE_NOVERSION)
+
 endif # WITH_POSTGRESQL
 
 if WITH_SQLITE
 if WITH_LIBDL
-lib_LTLIBRARIES += libzdb-sqlite.la
+modules_LTLIBRARIES += sqlite.la
 else
-noinst_LTLIBRARIES += libzdb-sqlite.la
-libzdb_la_LIBADD += libzdb-sqlite.la
+noinst_LTLIBRARIES += sqlite.la
+libzdb_la_LIBADD += sqlite.la
 endif
 
-libzdb_sqlite_la_SOURCES = src/db/sqlite/SQLiteConnection.c \
+sqlite_la_SOURCES = src/db/sqlite/SQLiteConnection.c \
 		           src/db/sqlite/SQLiteResultSet.c \
 		           src/db/sqlite/SQLitePreparedStatement.c
-libzdb_sqlite_la_CPPFLAGS = $(DB_SQLITE_CPPFLAGS)
-libzdb_sqlite_la_LDFLAGS = $(DB_SQLITE_LDFLAGS) $(LDFLAGS_VERSION)
+sqlite_la_CPPFLAGS = $(DB_SQLITE_CPPFLAGS)
+sqlite_la_LDFLAGS = $(DB_SQLITE_LDFLAGS) $(MODULE_NOVERSION) 
 endif # WITH_SQLITE
 
 if WITH_ORACLE
 if WITH_LIBDL
-lib_LTLIBRARIES += libzdb-oracle.la
+modules_LTLIBRARIES += oracle.la
 else
-noinst_LTLIBRARIES += libzdb-oracle.la
-libzdb_la_LIBADD += libzdb-oracle.la
+noinst_LTLIBRARIES += oracle.la
+libzdb_la_LIBADD += oracle.la
 endif
 
-libzdb_oracle_la_SOURCES = src/db/oracle/OracleConnection.c \
+oracle_la_SOURCES = src/db/oracle/OracleConnection.c \
 		           src/db/oracle/OracleResultSet.c \
 		           src/db/oracle/OraclePreparedStatement.c
-libzdb_oracle_la_CPPFLAGS = $(DB_ORACLE_CPPFLAGS)
-libzdb_oracle_la_LDFLAGS = $(DB_ORACLE_LDFLAGS) $(LDFLAGS_VERSION)
+oracle_la_CPPFLAGS = $(DB_ORACLE_CPPFLAGS)
+oracle_la_LDFLAGS = $(DB_ORACLE_LDFLAGS) $(MODULE_NOVERSION)
 endif
 
 
@@ -118,7 +121,7 @@ dist-hook::
 	-rm -rf `find $(distdir) -name ".svn"`
 	-rm -f $(distdir)/src/xconfig.h $(distdir)/src/stamp-* \
               $(distdir)/tools/bin/filterh
-        
+
 clean-local:
 		-rm -f `find src -name "*.o" -o -name "*.lo" -o -name "*.loT" \
                 -o -name "*~" -o -name ".#*" -o -name "core*"`
@@ -131,10 +134,9 @@ distclean-local:
                         doc/api-docs/*.css \
                         doc/api-docs/*.gif \
                         tools/bin/filterh \
-                        src/xconfig.h.in \
                         config/config.guess \
                         config/config.sub
-                        
+
 cleanall: clean distclean
 	-rm -f Makefile.in test/Makefile.in configure aclocal.m4 \
         libzdb-[0-9].*tar.gz conf/config.*
@@ -160,7 +162,7 @@ $(nobase_nodist_include_HEADERS): $(API_INTERFACES)
 #<< start-filter out
 src/net/URL.c: src/net/URL.re
 	$(RE2C) $(RE2CFLAGS) $< > $@
-        
+
 dist-hook::
 	-rm -rf $(distdir)/src/net/URL.re
 	$(FILTERH) < Makefile.am > $(distdir)/Makefile.am

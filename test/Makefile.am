@@ -11,9 +11,6 @@ exception_SOURCES = exception.c
 
 DISTCLEANFILES = *~ 
 
-distclean-local: 
-	-rm -f Makefile.in
-
 test: unit pool select
 
 verify:

@@ -66,17 +66,20 @@ struct T {
 
 
 static Cop_T getOp(const char *protocol) {
+#ifdef HAVE_LIBDL
   int e = 0;
   do {
+#endif
     for (int i = 0; i < Vector_size(cops); i++) {
       Cop_T op = (Cop_T) Vector_get(cops, i);
       if (Str_startsWith(protocol, op->name))
         return op;
     }
+#ifdef HAVE_LIBDL
     if (e > 0)
       break;
     {
-      StringBuffer_T fn = StringBuffer_new("libzdb-");
+      StringBuffer_T fn = StringBuffer_new(MODULESDIR "/");
       StringBuffer_append(fn, protocol);
       StringBuffer_append(fn, ".so");
       void * lib = dlopen(StringBuffer_toString(fn), RTLD_LAZY);
@@ -87,6 +90,7 @@ static Cop_T getOp(const char *protocol) {
         break;
     }
   } while (true);
+#endif
   return NULL;
 }
 

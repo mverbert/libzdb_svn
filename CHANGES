@@ -1,6 +1,17 @@
-                         CHANGES version 2.7
+                         CHANGES version 2.8
 
               This file summarizes changes made since 1.0
+              
+Version 2.8
+-----------
+* Allow spaces in URL property values
+* PostgreSQL: Allow sending application name to the server for 
+  logging. Thanks to Chris Mayo. See the PostgreSQL URL property,
+  application-name.
+Bug fixes:
+* ResultSet_getBlob: Ensure that returned blob size is 0 if blob
+  is SQL null.
+* Oracle: Fixed ResultSet memory leak.
 
 Version 2.7
 -----------

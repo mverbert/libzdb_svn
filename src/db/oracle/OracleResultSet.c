@@ -2,7 +2,7 @@
  * Copyright (C) 2010 Volodymyr Tarasenko <tvntsr@yahoo.com>
  *               2010 Sergey Pavlov <sergey.pavlov@gmail.com>
  *               2010 PortaOne Inc.
- * Copyright (C) 2010 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) 2011 Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -145,7 +145,6 @@ static int initaleDefiningBuffers(T R) {
                         R->lastError = OCIAttrGet(pard, OCI_DTYPE_PARAM, &col_name, &col_name_len, OCI_ATTR_NAME, R->err);
                         if (R->lastError != OCI_SUCCESS)
                                 continue;
-                        R->columns[i-1].name = CALLOC(1, col_name_len);
 #if defined(ORACLE_COLUMN_NAME_LOWERCASE) && ORACLE_COLUMN_NAME_LOWERCASE > 1
                         R->columns[i-1].name = CALLOC(1, col_name_len);
                         OCIMultiByteStrCaseConversion(R->env, R->columns[i-1].name, col_name, OCI_NLS_LOWERCASE);

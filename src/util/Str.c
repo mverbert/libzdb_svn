@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -83,14 +83,14 @@ char *Str_copy(char *dest, const char *src, int n) {
 }
 
 
-// We don't use strdup to support MemoryException on OOM
+// We do not use strdup so we can throw MemoryException on OOM
 char *Str_dup(const char *s) { 
         char *t = NULL;
         if (s) {
                 int n = strlen(s); 
                 t = ALLOC(n + 1);
                 memcpy(t, s, n);
-                t[n]= 0;
+                t[n] = 0;
         }
         return t;
 }
@@ -104,7 +104,7 @@ char *Str_ndup(const char *s, int n) {
                 n = l < n ? l : n; // Use the actual length of s if shorter than n
                 t = ALLOC(n + 1);
                 memcpy(t, s, n);
-                t[n]= 0;
+                t[n] = 0;
         }
         return t;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -166,7 +166,10 @@ double ResultSet_getDoubleByName(T R, const char *columnName) {
 
 const void *ResultSet_getBlob(T R, int columnIndex, int *size) {
 	assert(R);
-	return R->op->getBlob(R->D, columnIndex, size);
+        const void *b = R->op->getBlob(R->D, columnIndex, size);
+        if (! b)
+                *size = 0;
+	return b;
 }
 
 

@@ -1,8 +1,8 @@
-# Copyright (C) 2004-2010 Tildeslash Ltd. All rights reserved.
+# Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
 
 AC_PREREQ([2.53])
 
-AC_INIT([libzdb], [2.7], [bugs-libzdb@tildeslash.com])
+AC_INIT([libzdb], [2.8], [bugs-libzdb@tildeslash.com])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
@@ -323,6 +323,9 @@ if test "xyes" = "x$sqlite"; then
             DB_SQLITE_LDFLAGS="-L$with_sqlite/lib/ -lsqlite3"
             AC_SUBST(DB_SQLITE_CPPFLAGS)
             AC_SUBST(DB_SQLITE_LDFLAGS)                        
+            AC_DEFINE([HAVE_LIBSQLITE3])
+            AC_CHECK_LIB([sqlite3], [sqlite3_soft_heap_limit], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT], [], [sqlite3_soft_heap_limit])])
+            AC_CHECK_LIB([sqlite3], [sqlite3_soft_heap_limit64], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT64], [], [sqlite3_soft_heap_limit64])])
        fi
        LDFLAGS=$svd_LDFLAGS
        CPPFLAGS=$svd_CPPFLAGS
@@ -374,11 +377,11 @@ if test "x$GCC" = "xyes"; then
         # does this compiler support -Wno-pointer-sign ?
         svd_CFLAGS="$CFLAGS"
         CFLAGS="-Wno-pointer-sign $CFLAGS"
-        AC_COMPILE_IFELSE([int main(){return 0;}], [], [CFLAGS="$svd_CFLAGS"])        
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [return 0;])], [], [CFLAGS="$svd_CFLAGS"])        
         # does this compiler support -Wno-address ?
         svd_CFLAGS="$CFLAGS"
         CFLAGS="-Wno-address $CFLAGS"
-        AC_COMPILE_IFELSE([int main(){return 0;}], [], [CFLAGS="$svd_CFLAGS"])        
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [return 0;])], [], [CFLAGS="$svd_CFLAGS"])
 fi
 
 # ---------------------------------------------------------------------------

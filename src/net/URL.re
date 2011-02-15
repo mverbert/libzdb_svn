@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -376,9 +376,9 @@ static int parseURL(T U) {
 	host            = ([a-zA-Z0-9\-]+)([.]([a-zA-Z0-9\-]+))*;
 	port            = [:][0-9]+;
 	path            = [/]([\041-\377]\[?#;])*;
-	query           = ([\041-\377]\[#])*;
+	query           = ([\040-\377]\[#])*;
 	parameterkey    = ([\041-\377]\[=])+;
-	parametervalue  = ([\041-\377]\[&])*;
+	parametervalue  = ([\040-\377]\[&])*;
 	*/
 proto:
 	if (YYCURSOR >= YYLIMIT)

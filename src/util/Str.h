@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2010 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -48,7 +48,7 @@ int Str_isByteEqual(const char *a, const char *b);
 
 
 /**
- * Returns true if the string <i>a</i> starts with the string
+ * Returns true if the string <i>a</i> starts with the sub-string
  * <i>b</i>. The test is <i>case-sensitive</i>.
  * @param a The string to search for b in
  * @param b The <i>sub-string</i> to test a against

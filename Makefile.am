@@ -1,4 +1,4 @@
-# Copyright (C) 2010 Tildeslash Ltd. All rights reserved.
+# Copyright (C) 2011 Tildeslash Ltd. All rights reserved.
 
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS  = -I m4
@@ -27,7 +27,7 @@ if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
 
-libzdb_la_LDFLAGS = -version-info 7:1:0
+libzdb_la_LDFLAGS = -version-info 7:2:0
 MODULE_NOVERSION= -module -avoid-version
 
 if ! WITH_LIBDL

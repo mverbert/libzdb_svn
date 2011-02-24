@@ -27,7 +27,7 @@ if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
 
-libzdb_la_LDFLAGS = -version-info 7:2:0
+libzdb_la_LDFLAGS = -version-info 7:3:0
 MODULE_NOVERSION= -module -avoid-version
 
 if ! WITH_LIBDL

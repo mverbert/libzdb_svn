@@ -62,24 +62,30 @@ long Util_usleep(long u) {
 
 
 void Util_debug(const char *s, ...) {
-	va_list ap;
-	va_start(ap, s);
-	vfprintf(stdout, s, ap);
-	va_end(ap);
+        if (ZBDEBUG) {
+                va_list ap;
+                va_start(ap, s);
+                vfprintf(stdout, s, ap);
+                va_end(ap);
+        }
 }
 
 
 void Util_abort(const char *e, ...) {
 	va_list ap;
-        uchar_t buf[ERROR_SIZE + 1];
 	va_start(ap, e);
-	vsnprintf(buf, ERROR_SIZE, e, ap);
+	if (AbortHandler) {
+	        char *t = Str_vcat(e, ap);
+	        AbortHandler(t); 
+                FREE(t);
+	} else {
+                vfprintf(stderr, e, ap);
+                if (ZBDEBUG)
+                        abort();
+                else
+                        exit(1);
+	}
 	va_end(ap);
-        if (! AbortHandler) {
-                fprintf(stderr, "%s", buf);
-                abort();
-        } 
-        AbortHandler(buf); 
 }
 
 #ifdef PACKAGE_PROTECTED

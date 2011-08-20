@@ -345,9 +345,10 @@ int ConnectionPool_getConnectionTimeout(T P);
  * practice this means Out-Of-Memory errors or uncatched exceptions.
  * Clients may optionally provide this function. If not provided
  * the library will call <code>abort(3)</code> upon encountering a 
- * fatal error. This method provide clients with means to close down
- * execution gracefully. It is an unchecked runtime error to continue
- * using the library after the <code>abortHandler</code> was called.
+ * fatal error if ZBDEBUG is set, otherwise exit(1) is called. This
+ * method provide clients with means to close down execution gracefully.
+ * It is an unchecked runtime error to continue using the library after 
+ * the <code>abortHandler</code> was called.
  * @param P A ConnectionPool object
  * @param abortHandler The handler function to call should a fatal 
  * error occur during processing. An explanatory error message is passed 
@@ -364,7 +365,7 @@ void ConnectionPool_setAbortHandler(T P, void(*abortHandler)(const char *error))
  * <code>connectionTimeout</code> has expired <i>or</i> if the Connection
  * failed the ping test. Active Connections, that is, connections in current
  * use by your application are <i>never </i> closed by this thread. This 
- * method sets the reaper thread sweep properties, but does not start the
+ * method sets the reaper thread sweep property, but does not start the
  * thread. This is done in ConnectionPool_start(). So, if the pool should 
  * use a reaper thread, remember to call this method <b>before</b> 
  * ConnectionPool_start(). It is a checked runtime error for 

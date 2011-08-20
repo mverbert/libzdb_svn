@@ -48,22 +48,19 @@ static inline void doAppend(T S, const char *s, va_list ap) {
         va_list ap_copy;
         while (true) {
                 va_copy(ap_copy, ap);
-                int n = vsnprintf(S->buffer + S->used, S->length - S->used, s, ap_copy);
+                int n = vsnprintf((char*)(S->buffer + S->used), S->length - S->used, s, ap_copy);
                 va_end(ap_copy);
-                if (n > -1 && (S->used + n) < S->length) {
+                if ((S->used + n) < S->length) {
                         S->used += n;
                         break;
                 }
-                if (n > -1)
-                        S->length += STRLEN + n;
-                else
-                        S->length *= 2;
-                RESIZE(S->buffer, S->length + 1);
+                S->length += STRLEN + n;
+                RESIZE(S->buffer, S->length);
         }
 }
 
 
-/* Replace all occurences of ? in this string buffer with prefix[0..99] */
+/* Replace all occurences of ? in this string buffer with prefix[1..99] */
 static int StringBuffer_prepareSQL(T S, char prefix) {
         int n, i;
         for (n = i = 0; S->buffer[i]; i++) if (S->buffer[i] == '?') n++;
@@ -92,6 +89,17 @@ static int StringBuffer_prepareSQL(T S, char prefix) {
 }
 
 
+static inline T ctor(int hint) {
+        T S;
+        NEW(S);
+        S->used = 0;
+        S->length = hint;
+        S->buffer = ALLOC(hint);
+        *S->buffer = 0;
+        return S;
+}
+
+
 /* ----------------------------------------------------- Protected methods */
 
 
@@ -99,26 +107,16 @@ static int StringBuffer_prepareSQL(T S, char prefix) {
 #pragma GCC visibility push(hidden)
 #endif
 
+
 T StringBuffer_new(const char *s) {
-        T S;
-        NEW(S);
-        S->used = 0;
-        S->length = STRLEN;
-        S->buffer = ALLOC(STRLEN + 1);
-        return StringBuffer_append(S, "%s", s);
+        return StringBuffer_append(ctor(STRLEN), "%s", s);
 }
 
 
 T StringBuffer_create(int hint) {
-        T S;
         if (hint <= 0)
                 THROW(AssertException, "Illegal hint value");
-        NEW(S);
-        S->used = 0;
-        S->length = hint;
-        S->buffer = ALLOC(hint + 1);
-        *S->buffer = 0;
-        return S;
+        return ctor(hint);
 }
 
 
@@ -168,7 +166,7 @@ void StringBuffer_clear(T S) {
 
 const char *StringBuffer_toString(T S) {
         assert(S);
-        return S->buffer;
+        return (const char*)S->buffer;
 }
 
 

@@ -1,6 +1,6 @@
 # Copyright (C) 2011 Tildeslash Ltd. All rights reserved.
 
-AUTOMAKE_OPTIONS = foreign no-dependencies
+AUTOMAKE_OPTIONS = foreign no-dependencies subdir-objects
 ACLOCAL_AMFLAGS  = -I m4
 
 SUBDIRS         = . $(UNIT_TEST)
@@ -27,7 +27,7 @@ if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
 
-libzdb_la_LDFLAGS = -version-info 7:3:0
+libzdb_la_LDFLAGS = -version-info 7:4:0
 MODULE_NOVERSION= -module -avoid-version
 
 if ! WITH_LIBDL
@@ -127,16 +127,16 @@ clean-local:
                 -o -name "*~" -o -name ".#*" -o -name "core*"`
 
 distclean-local: 
-		-rm -rf autom4te.cache/ \
-                        build/ \
-                        $(LIBRARY_NAME)
-		-rm -f  doc/api-docs/*h.html \
-                        doc/api-docs/*.css \
-                        doc/api-docs/*.gif \
-                        tools/bin/filterh \
-                        config/config.guess \
-                        config/config.sub
-
+	-rm -rf autom4te.cache/ \
+                build/ \
+                $(LIBRARY_NAME)
+	-rm -f  doc/api-docs/*h.html \
+                doc/api-docs/*.css \
+                doc/api-docs/*.gif \
+                tools/bin/filterh \
+                src/xconfig.h.in \
+                config/config.guess \
+                config/config.sub
 cleanall: clean distclean
 	-rm -f Makefile.in test/Makefile.in configure aclocal.m4 \
         libzdb-[0-9].*tar.gz conf/config.*
@@ -164,7 +164,7 @@ src/net/URL.c: src/net/URL.re
 	$(RE2C) $(RE2CFLAGS) $< > $@
 
 dist-hook::
-	-rm -rf $(distdir)/src/net/URL.re
+	-rm -f $(distdir)/src/net/URL.re
 	$(FILTERH) < Makefile.am > $(distdir)/Makefile.am
 	$(FILTERH) < Makefile.in > $(distdir)/Makefile.in
 #>> end-filter out

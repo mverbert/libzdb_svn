@@ -27,7 +27,7 @@
 
 /**
  * Implementation of the URL interface. The scanner handle 
- * ISO Latin 1 or UTF-8 encoded url's transparently.
+ * ISO Latin 1 or UTF-8 encoded url's transparently. 
  *
  * @file
  */
@@ -118,7 +118,6 @@ static const uchar_t b2x[][256] = {
 };
 
 
-#define BUFFER_SIZE 8192
 #define UNKNOWN_PORT -1
 #define YYCTYPE       uchar_t
 #define YYCURSOR      U->buffer  
@@ -128,64 +127,219 @@ static const uchar_t b2x[][256] = {
 #define YYCTXMARKER   U->ctx
 #define YYFILL(n)     ((void)0)
 #define YYTOKEN       U->token
-#define SET_PROTOCOL(PORT) *(YYCURSOR-3)=0; \
-	U->protocol=U->token;U->port=PORT;goto parse
-#define STRDUP(s) (s?Str_dup(s):NULL)
-#define STRNDUP(s, n) (s?Str_ndup(s, n):NULL)
-	
-
-/* ------------------------------------------------------------ Prototypes */
+#define SET_PROTOCOL(PORT) *(YYCURSOR-3)=0; U->protocol=U->token; U->port=PORT; goto parse
 
 
-static int x2b(char *x);
-static int parseURL(T U);
-static void setParams(T U);
-static void freeParams(param_t p);
+/* ------------------------------------------------------- Private methods */
+
+
+static int parseURL(T U) {
+        param_t param = NULL;
+	/*!re2c
+	ws		= [ \t\r\n];
+	any		= [\000-\377];
+	protocol        = [a-zA-Z0-9]+"://";
+	auth            = ([\040-\377]\[@])+[@];
+	host            = ([a-zA-Z0-9\-]+)([.]([a-zA-Z0-9\-]+))*;
+	port            = [:][0-9]+;
+	path            = [/]([\041-\377]\[?#;])*;
+	query           = ([\040-\377]\[#])*;
+	parameterkey    = ([\041-\377]\[=])+;
+	parametervalue  = ([\040-\377]\[&])*;
+	*/
+proto:
+	if (YYCURSOR >= YYLIMIT)
+		return false;
+	YYTOKEN = YYCURSOR;
+	/*!re2c
+
+        ws         {
+                        goto proto;
+		   }
+
+        "mysql://" {
+                      	SET_PROTOCOL(MYSQL_DEFAULT_PORT);
+                   }
+                   
+        "postgresql://" {
+                      	SET_PROTOCOL(POSTGRESQL_DEFAULT_PORT);
+                   }
+
+        "oracle://" {
+                      	SET_PROTOCOL(ORACLE_DEFAULT_PORT);
+                   }
+
+        protocol   {
+                      	SET_PROTOCOL(UNKNOWN_PORT);
+                   }
+    
+        any        {
+                      	goto proto;
+                   }
+	*/
+parse:
+	if (YYCURSOR >= YYLIMIT)
+		return true;
+	YYTOKEN = YYCURSOR;
+	/*!re2c
+    
+        ws         { 
+                        goto parse; 
+                   }
+
+        auth       {
+                        char *p;
+                        *(YYCURSOR-1) = 0;
+                        U->user = YYTOKEN;
+                        p = strchr(U->user, ':');
+                        if (p) {
+                                *(p++) = 0;
+                                U->password = p;
+                        }
+                        goto parse; 
+                   }
+
+        host       {
+                        U->host = Str_ndup(YYTOKEN, (int)(YYCURSOR - YYTOKEN));
+                        goto parse; 
+                   }
+
+        port       {
+                        U->port = Str_parseInt(YYTOKEN + 1); // read past ':'
+                        goto parse; 
+                   }
+
+        path       {
+                        *YYCURSOR = 0;
+                        U->path = YYTOKEN;
+                        return true;
+                   }
+                   
+        path[?]    {
+                        *(YYCURSOR-1) = 0;
+                        U->path = YYTOKEN;
+                        goto query; 
+                   }
+                   
+       any         {
+                      	return true;
+                   }
+                   
+	*/
+query:
+        if (YYCURSOR >= YYLIMIT)
+		return true;
+	YYTOKEN =  YYCURSOR;
+	/*!re2c
+
+        query      {
+                        *YYCURSOR = 0;
+                        U->query = Str_ndup(YYTOKEN, (int)(YYCURSOR - YYTOKEN));
+                        YYCURSOR = YYTOKEN; // backtrack to start of query string after terminating it and
+                        goto params;
+                   }
+
+        any        { 
+                      return true;     
+                   }
+		   
+	*/
+params:
+	if (YYCURSOR >= YYLIMIT)
+		return true;
+	YYTOKEN =  YYCURSOR;
+	/*!re2c
+         
+         parameterkey {
+                /* No parameters in querystring */
+                return true;
+        }
+
+        parameterkey/[=] {
+                NEW(param);
+                param->name = YYTOKEN;
+                param->next = U->params;
+                U->params = param;
+                goto params;
+        }
+
+        [=]parametervalue[&]? {
+                *YYTOKEN++ = 0;
+                if (*(YYCURSOR-1) == '&')
+                        *(YYCURSOR-1) = 0;
+                if (! param) /* format error */
+                        return true; 
+                param->value = YYTOKEN;
+                goto params;
+        }
+
+        any { 
+                return true;
+        }
+        */
+        return false;
+}
+
+
+static int x2b(char *x) {
+	register int b;
+	b = ((x[0] >= 'A') ? ((x[0] & 0xdf) - 'A')+10 : (x[0] - '0'));
+	b *= 16;
+	b += (x[1] >= 'A' ? ((x[1] & 0xdf) - 'A')+10 : (x[1] - '0'));
+	return b;
+}
+
+
+static void freeParams(param_t p) {
+        param_t q;
+        for (;p; p = q) {
+                q = p->next;
+                FREE(p);
+        }
+}
+
+
+static T ctor(uchar_t *data) {
+        T U;
+	NEW(U);
+	U->data = data;
+	YYCURSOR = U->data;
+	U->port = UNKNOWN_PORT;
+	YYLIMIT = U->data + strlen(U->data);
+	if (parseURL(U))
+		return U;
+	URL_free(&U);
+	return NULL;
+}
 
 
 /* -------------------------------------------------------- Public methods */
 
 
 T URL_new(const char *url) {
-	T U;
-	if (! (url && *url))
-		return NULL;
+        if (! (url && *url))
+                return NULL;
         Exception_init();
-	NEW(U);
-	U->data = (uchar_t*)Str_dup(url);
-	YYCURSOR = U->data;
-	U->port = UNKNOWN_PORT;
-	YYLIMIT = U->data + strlen(U->data);
-	if (parseURL(U)) {
-                if (U->query) 
-                        setParams(U);
-		return U;
-        } 
-	URL_free(&U);
-	return NULL;
+        return ctor((uchar_t*)Str_dup(url));
 }
 
 
 T URL_create(const char *url, ...) {
-	int n;
+        if (! (url && *url))
+                return NULL;
+        Exception_init();
 	va_list ap;
-	uchar_t buf[BUFFER_SIZE];
-	if (! (url && *url))
-		return NULL;
-	va_start(ap, url);
-	n = vsnprintf(buf, BUFFER_SIZE, url, ap);
-	va_end(ap);
-	assert(n > 0 && n < BUFFER_SIZE);
-	return URL_new(buf);
+        va_start(ap, url);
+	T U = ctor((uchar_t*)Str_vcat(url, ap));
+  	va_end(ap);
+        return U;
 }
-
 
 void URL_free(T *U) {
 	assert(U && *U);
-        if ((*U)->params) freeParams((*U)->params);
+        freeParams((*U)->params);
         FREE((*U)->paramNames);
 	FREE((*U)->toString);
-	FREE((*U)->portStr);
 	FREE((*U)->query);
 	FREE((*U)->data);
 	FREE((*U)->host);
@@ -257,8 +411,7 @@ const char *URL_getParameter(T U, const char *name) {
 	assert(U);
         assert(name);
         if (U->params) {
-                param_t p;
-                for (p = U->params; p; p = p->next) {
+                for (param_t p = U->params; p; p = p->next) {
                         if (Str_isByteEqual(p->name, name))
                                 return p->value;
                 }
@@ -270,21 +423,26 @@ const char *URL_getParameter(T U, const char *name) {
 const char *URL_toString(T U) {
 	assert(U);
 	if (! U->toString) {
-		U->toString = Str_cat("%s://%s%s%s%s%s%s%s%s%s%s", 
+                uchar_t port[7] = {0};
+                if (U->port >= 0)
+                        snprintf(port, 6, ":%d", U->port);
+		U->toString = Str_cat("%s://%s%s%s%s%s%s%s%s%s", 
                                       U->protocol,
                                       U->user?U->user:"",
                                       U->password?":":"",
                                       U->password?U->password:"",
                                       U->user?"@":"",
                                       U->host?U->host:"",
-                                      U->portStr?":":"",
-                                      U->portStr?U->portStr:"",
+                                      port,
                                       U->path?U->path:"",
-                                      U->query?"?":"",
-                                      U->query?U->query:""); 
+                                      U->query ? "?":"",
+                                      U->query ? U->query : ""); 
 	}
 	return U->toString;
 }
+
+
+/* --------------------------------------------------------- Class methods */
 
 
 char *URL_unescape(char *url) {
@@ -361,195 +519,4 @@ char *URL_normalize(char *path) {
                 }
         }
 	return path;
-}
-
-
-/* ------------------------------------------------------- Private methods */
-
-
-static int parseURL(T U) {
-	/*!re2c
-	ws		= [ \t\r\n];
-	any		= [\000-\377];
-	protocol        = [a-zA-Z0-9]+"://";
-	auth            = ([\040-\377]\[@])+[@];
-	host            = ([a-zA-Z0-9\-]+)([.]([a-zA-Z0-9\-]+))*;
-	port            = [:][0-9]+;
-	path            = [/]([\041-\377]\[?#;])*;
-	query           = ([\040-\377]\[#])*;
-	parameterkey    = ([\041-\377]\[=])+;
-	parametervalue  = ([\040-\377]\[&])*;
-	*/
-proto:
-	if (YYCURSOR >= YYLIMIT)
-		return false;
-	YYTOKEN = YYCURSOR;
-	/*!re2c
-
-        ws         {
-                        goto proto;
-		   }
-
-        "mysql://" {
-                      	SET_PROTOCOL(MYSQL_DEFAULT_PORT);
-                   }
-                   
-        "postgresql://" {
-                      	SET_PROTOCOL(POSTGRESQL_DEFAULT_PORT);
-                   }
-
-        "oracle://" {
-                      	SET_PROTOCOL(ORACLE_DEFAULT_PORT);
-                   }
-
-        protocol   {
-                      	SET_PROTOCOL(UNKNOWN_PORT);
-                   }
-    
-        any        {
-                      	goto proto;
-                   }
-	*/
-parse:
-	if (YYCURSOR >= YYLIMIT)
-		return true;
-	YYTOKEN = YYCURSOR;
-	/*!re2c
-    
-        ws         { 
-                        goto parse; 
-                   }
-
-        auth       {
-                        char *p;
-                        *(YYCURSOR-1) = 0;
-                        U->user = YYTOKEN;
-                        p = strchr(U->user, ':');
-                        if (p) {
-                                *(p++) = 0;
-                                U->password = p;
-                        }
-                        goto parse; 
-                   }
-
-        host       {
-                        U->host = STRNDUP(YYTOKEN, (YYCURSOR - YYTOKEN));
-                        goto parse; 
-                   }
-
-        port       {
-                        U->portStr = STRNDUP(YYTOKEN+1, (YYCURSOR-YYTOKEN-1));
-                        U->port = Str_parseInt(U->portStr);
-                        goto parse; 
-                   }
-
-        path       {
-                        *YYCURSOR = 0;
-                        U->path = YYTOKEN;
-                        return true;
-                   }
-                   
-        path[?]    {
-                        *(YYCURSOR-1) = 0;
-                        U->path = YYTOKEN;
-                        goto query; 
-                   }
-                   
-       any         {
-                      	return true;
-                   }
-                   
-	*/
-query:
-	if (YYCURSOR >= YYLIMIT)
-		return true;
-	YYTOKEN =  YYCURSOR;
-	/*!re2c
-
-        query      {
-                        *YYCURSOR = 0;
-                        U->qptr = YYTOKEN;
-                        U->query = STRNDUP(YYTOKEN, (YYCURSOR-YYTOKEN));
-                        return true;
-                   }
-
-        any        { 
-                      return true;     
-                   }
-		   
-	*/
-        return false;
-}
-
-
-/*
- * Scan the query string for params. 
- * RFC 2396/3.3 URL path parameters are ignored in this version
- */
-static void setParams(T U) {
-	uchar_t *l, *s, *t;
-        param_t param = NULL;
-        s = U->qptr;
-	l = s + strlen(s);
-#undef YYCURSOR
-#undef YYLIMIT
-#undef YYMARKER
-#undef YYFILL
-#undef YYTOKEN
-#define YYCURSOR        s
-#define YYLIMIT         l
-#define YYMARKER        
-#define YYFILL(n)
-#define YYTOKEN         t
-start:
-        if (YYCURSOR >= YYLIMIT)
-                return;
-	YYTOKEN = YYCURSOR;
-	/*!re2c
-
-        parameterkey {
-                        /* No parameters, but a querystring */
-                        return;
-                   }
-                      
-	parameterkey/[=] {
-                        NEW(param);
-                        param->name = YYTOKEN;
-                        param->next = U->params;
-                        U->params = param;
-                        goto start;
-                   }
-                   
-	[=]parametervalue[&]? {
-                        *YYTOKEN++ = 0;
-                        if (*(YYCURSOR-1) == '&')
-                                *(YYCURSOR-1) = 0;
-                        if (! param) /* format error */
-                                return; 
-                         param->value = YYTOKEN;
-			 goto start;
-                   }
-                   
-        any        { 
-	                 return;
-		   }
-	*/
-}
-
-
-static int x2b(char *x) {
-	register int b;
-	b = ((x[0] >= 'A') ? ((x[0] & 0xdf) - 'A')+10 : (x[0] - '0'));
-	b *= 16;
-	b += (x[1] >= 'A' ? ((x[1] & 0xdf) - 'A')+10 : (x[1] - '0'));
-	return b;
-}
-
-
-static void freeParams(param_t p) {
-        param_t q;
-        for (;p; p = q) {
-                q = p->next;
-                FREE(p);
-        }
 }

@@ -231,7 +231,12 @@ void testURL() {
                 assert(Str_isEqual("libzdb", URL_getParameter(url, "name")));
                 printf("\tparameter query=%s\n", URL_getParameter(url, "query"));
                 assert(Str_isEqual("string", URL_getParameter(url, "query")));
+                assert(Str_isEqual("http://hauk:admin@www.foo.bar:8080/document/index.csp?query=string&name=libzdb", URL_toString(url)));
                 URL_free(&url);
+                // Test URL_toString without explicit port
+                URL_T u = URL_new("http://www.tildeslash.com/");
+                assert(Str_isEqual("http://www.tildeslash.com/", URL_toString(u)));
+                URL_free(&u);
         }
         printf("=> Test5: OK\n\n");
         

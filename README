@@ -67,8 +67,8 @@
  non-API objects in the library. It is strongly recommended to build the
  library with --enable-protected as it will be faster and reduce the risk
  for name symbol interposing
-  
-  
+
+
  API Documentation
  -----------------
  

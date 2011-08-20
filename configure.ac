@@ -2,7 +2,7 @@
 
 AC_PREREQ([2.53])
 
-AC_INIT([libzdb], [2.8.1], [bugs-libzdb@tildeslash.com])
+AC_INIT([libzdb], [2.9], [bugs-libzdb@tildeslash.com])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
@@ -324,8 +324,8 @@ if test "xyes" = "x$sqlite"; then
             AC_SUBST(DB_SQLITE_CPPFLAGS)
             AC_SUBST(DB_SQLITE_LDFLAGS)                        
             AC_DEFINE([HAVE_LIBSQLITE3])
-            AC_CHECK_LIB([sqlite3], [sqlite3_soft_heap_limit], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT], [], [sqlite3_soft_heap_limit])])
-            AC_CHECK_LIB([sqlite3], [sqlite3_soft_heap_limit64], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT64], [], [sqlite3_soft_heap_limit64])])
+            AC_CHECK_LIB([sqlite3], [sqlite3_soft_heap_limit], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT], [], [sqlite3_soft_heap_limit])], [], [-ldl])
+            AC_CHECK_LIB([sqlite3], [sqlite3_soft_heap_limit64], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT64], [], [sqlite3_soft_heap_limit64])], [], [-ldl])
        fi
        LDFLAGS=$svd_LDFLAGS
        CPPFLAGS=$svd_CPPFLAGS
@@ -360,6 +360,21 @@ fi
 
 AC_HEADER_STDC
 
+# ------------------------------------------------------------------------
+# Functions 
+# ------------------------------------------------------------------------
+
+# Require a working setjmp
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <setjmp.h>]],
+        [[jmp_buf env; setjmp(env);]])], 
+        [], [AC_MSG_FAILURE([setjmp is required])])
+
+# Require that we have vsnprintf that conforms to c99. I.e. does bounds check
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <stdarg.h> 
+        #include <stdio.h>]],
+[[char t[1]; va_list ap; int n = vsnprintf(t, 1, "hello", ap); if(n == 5) return 0;return 1;]])], 
+[], [AC_MSG_FAILURE([vsnprintf does not conform to c99])])
+
 # ---------------------------------------------------------------------------
 # Compiler 
 # ---------------------------------------------------------------------------
@@ -373,7 +388,7 @@ AC_C_BIGENDIAN
 if test "x$GCC" = "xyes"; then
 	CFLAGS="$CFLAGS -Wall -Wunused -Wno-unused-label -funsigned-char";
         # Add C99 support
-        CFLAGS="$CFLAGS -D_GNU_SOURCE -std=gnu99"
+        CFLAGS="$CFLAGS -D_GNU_SOURCE -std=c99"
         # does this compiler support -Wno-pointer-sign ?
         svd_CFLAGS="$CFLAGS"
         CFLAGS="-Wno-pointer-sign $CFLAGS"
@@ -383,11 +398,6 @@ if test "x$GCC" = "xyes"; then
         CFLAGS="-Wno-address $CFLAGS"
         AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [return 0;])], [], [CFLAGS="$svd_CFLAGS"])
 fi
-
-# ---------------------------------------------------------------------------
-# Functions 
-# ---------------------------------------------------------------------------
-
 
 # ---------------------------------------------------------------------------
 # Outputs

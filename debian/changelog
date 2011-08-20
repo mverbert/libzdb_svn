@@ -1,3 +1,9 @@
+libzdb (2.9) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- Matthieu Verbert <matthieu.verbert@aitb.org>  Sat, 20 Aug 2011 22:18:17 +0200
+
 libzdb (2.8) UNRELEASED; urgency=low
 
   * New upstream release

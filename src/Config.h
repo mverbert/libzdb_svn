@@ -59,13 +59,7 @@
 /**
  * The standard debug routine
  */
-#define DEBUG	if (ZBDEBUG) Util_debug
-
-
-/**
- * The standard maximum length for a checked error message 
- */
-#define ERROR_SIZE      1024
+#define DEBUG	Util_debug
 
 
 /* --------------------------------------------- SQL standard value macros */

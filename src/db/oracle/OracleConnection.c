@@ -37,6 +37,8 @@
 /**
  * Implementation of the Connection/Delegate interface for oracle. 
  * 
+ * TODO: Query Timeout has no effect as this is not implemented. 
+ *
  * @file
  */
 
@@ -93,7 +95,7 @@ extern const struct Pop_T oraclepops;
 /* ------------------------------------------------------- Private methods */
 
 
-static int doConnect(URL_T url, T C, char**  error) {
+static int doConnect(T C, URL_T url, char**  error) {
 #define ERROR(e) do {*error = Str_dup(e); return false;} while (0)
 #define ORAERROR(e) do{ *error = Str_dup(OracleConnection_getLastError(e)); return false;} while(0)
         const char *database, *username, *password;
@@ -174,7 +176,6 @@ T OracleConnection_new(URL_T url, char **error) {
                 return NULL;
         }
         C->txnhp = NULL;
-
         return C;
 }
 

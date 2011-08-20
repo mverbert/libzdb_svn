@@ -88,7 +88,7 @@ static inline void ensureCapacity(T R, int i) {
                         THROW(SQLException, "mysql_stmt_fetch_column -- %s", mysql_stmt_error(R->stmt));
                 /* Need to rebind as the buffer address has changed. If we do this 
                  before calling mysql_stmt_fetch_column the buffer is not updated, 
-                 but doing this afterwards work, don't ask */
+                 but doing this afterwards works */
                 if ((R->lastError = mysql_stmt_bind_result(R->stmt, R->bind)))
                         THROW(SQLException, "mysql_stmt_bind_result -- %s", mysql_stmt_error(R->stmt));
         }
@@ -210,7 +210,7 @@ const void *MysqlResultSet_getBlob(T R, int columnIndex, int *size) {
         if (R->columns[i].is_null) 
                 return NULL;
         ensureCapacity(R, i);
-        *size = R->columns[i].real_length;
+        *size = (int)R->columns[i].real_length;
         return R->columns[i].buffer;
 }
 

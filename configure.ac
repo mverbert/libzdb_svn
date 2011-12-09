@@ -16,6 +16,7 @@ AC_CONFIG_COMMANDS([libtool_patch],[test `uname` = "OpenBSD" && perl -p -i -e "s
 
 AC_PROG_CC
 AC_PROG_GCC_TRADITIONAL
+AM_PROG_CC_C_O
 AC_PATH_PROG([RE2C], [re2c], [re2c_not_found], [$PATH:/usr/local/bin:/usr/bin])
 AC_PATH_PROG([FLEX], [flex], [no])
 if test "x$FLEX" = "xno"; then

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -23,6 +23,7 @@
 #include "StringBuffer.h"
 #include "URL.h"
 #include "Vector.h"
+#include "system/Time.h"
 #include "ResultSet.h"
 #include "PreparedStatement.h"
 #include "Connection.h"
@@ -47,7 +48,7 @@ static void __attribute__ ((constructor (200))) init_cops() {
 }
 
 #define T Connection_T
-struct T {
+struct Connection_S {
         Cop_T op;
         URL_T url;
 	int maxRows;
@@ -55,7 +56,7 @@ struct T {
 	int isAvailable;
         Vector_T prepared;
 	int isInTransaction;
-        long lastAccessedTime;
+        time_t lastAccessedTime;
         ResultSet_T resultSet;
         ConnectionDelegate_T D;
         ConnectionPool_T parent;
@@ -113,7 +114,6 @@ static void freePrepared(T C) {
 		ps = Vector_pop(C->prepared);
 		PreparedStatement_free(&ps);
 	}
-        assert(Vector_isEmpty(C->prepared));
 }
 
 
@@ -134,11 +134,9 @@ T Connection_new(void *pool, char **error) {
         C->prepared = Vector_new(4);
         C->timeout = SQL_DEFAULT_TIMEOUT;
         C->url = ConnectionPool_getURL(pool);
-        if (! setDelegate(C, error)) {
+        C->lastAccessedTime = Time_now();
+        if (! setDelegate(C, error))
                 Connection_free(&C);
-                return NULL;
-        }
-        C->lastAccessedTime = Util_seconds();
 	return C;
 }
 
@@ -156,7 +154,7 @@ void Connection_free(T *C) {
 void Connection_setAvailable(T C, int isAvailable) {
         assert(C);
         C->isAvailable = isAvailable;
-        C->lastAccessedTime = Util_seconds();
+        C->lastAccessedTime = Time_now();
 }
 
 
@@ -166,7 +164,7 @@ int Connection_isAvailable(T C) {
 }
 
 
-long Connection_getLastAccessedTime(T C) {
+time_t Connection_getLastAccessedTime(T C) {
         assert(C);
         return C->lastAccessedTime;
 }

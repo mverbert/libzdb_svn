@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -21,6 +21,7 @@
 
 #include "URL.h"
 #include "Thread.h"
+#include "system/Time.h"
 #include "Vector.h"
 #include "ResultSet.h"
 #include "PreparedStatement.h"
@@ -39,7 +40,7 @@
 
 
 #define T ConnectionPool_T
-struct T {
+struct ConnectionPool_S {
         URL_T url;
         int filled;
         int doSweep;
@@ -73,7 +74,6 @@ static void drainPool(T P) {
 		Connection_T con = Vector_pop(P->pool);
 		Connection_free(&con);
 	}
-        assert(Vector_isEmpty(P->pool));
 }
 
 
@@ -110,7 +110,7 @@ static int reapConnections(T P) {
         int n = 0;
         Connection_T con = NULL;
         int x = Vector_size(P->pool) - getActive(P) - P->initialConnections;
-        long timedout = Util_seconds() - P->connectionTimeout;
+        time_t timedout = Time_now() - P->connectionTimeout;
         while (x-->0) {
                 for (i = 0; i < Vector_size(P->pool); i++) {
                         con = Vector_get(P->pool, i);
@@ -132,7 +132,7 @@ static void *doSweep(void *args) {
         struct timespec wait = {0, 0};
         Mutex_lock(P->mutex);
         while (! P->stopped) {
-                wait.tv_sec = Util_seconds() + P->sweepInterval;
+                wait.tv_sec = Time_now() + P->sweepInterval;
                 Sem_timeWait(P->alarm,  P->mutex, wait);
                 if (P->stopped) break;
                 reapConnections(P);

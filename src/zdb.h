@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -16,20 +16,26 @@
 
 #ifndef ZDB_INCLUDED
 #define ZDB_INCLUDED
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /**
- * Include libzdb API interfaces
+ * Include this interface in your C code to import the libzdb API.
+ * This meta interface also wraps libzdb API interface files in an
+ * 'extern "C"' block to allow for including libzdb in a C++ or in
+ * a Objective-C++ project.
  *
  * @file
  */
 
-/* Mask out GCC __attribute__ extension for non-gcc compilers. */
-#ifndef __GNUC__
+/* Mask out __attribute__ extension for non- GCC/llvm-clang compilers. */
+#if (! (defined(__GNUC__) || defined(__clang__)))
 #define __attribute__(x)
 #endif
 
-/* libzdb API interface */
+/* libzdb API interfaces */
 #include <URL.h>
 #include <ResultSet.h>
 #include <PreparedStatement.h>
@@ -38,4 +44,7 @@
 #include <SQLException.h>
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif

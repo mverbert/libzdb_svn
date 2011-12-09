@@ -1,8 +1,8 @@
-# Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+# Copyright (C) Tildeslash Ltd. All rights reserved.
 
 AC_PREREQ([2.53])
 
-AC_INIT([libzdb], [2.9], [bugs-libzdb@tildeslash.com])
+AC_INIT([libzdb], [2.10], [bugs-libzdb@tildeslash.com])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE

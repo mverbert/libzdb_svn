@@ -1,7 +1,12 @@
-                         CHANGES version 2.9
+                         CHANGES version 2.10
 
               This file summarizes changes made since 1.0
 
+Version 2.10
+-----------
+* Make libzdb usable and includable in a C++ or a Objective-C(++)
+  project. Include <zdb.h> to use libzdb from C++ or Objective-C++.
+* Internal optimizing changes and improvements
 
 Version 2.9
 -----------

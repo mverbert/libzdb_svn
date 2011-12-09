@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -151,7 +151,7 @@ int Str_parseInt(const char *s) {
         errno = 0;
 	i = (int)strtol(s, &e, 10);
 	if (errno || (e == s))
-		THROW(SQLException, "NumberFormatException: For input string %s -- %s", s, STRERROR);
+		THROW(SQLException, "NumberFormatException: For input string %s -- %s", s, System_getLastError());
 	return i;
 }
 
@@ -164,7 +164,7 @@ long long int Str_parseLLong(const char *s) {
         errno = 0;
 	l = strtoll(s, &e, 10);
 	if (errno || (e == s))
-		THROW(SQLException, "NumberFormatException: For input string %s -- %s", s, STRERROR);
+		THROW(SQLException, "NumberFormatException: For input string %s -- %s", s, System_getLastError());
 	return l;
 }
 
@@ -177,7 +177,7 @@ double Str_parseDouble(const char *s) {
         errno = 0;
 	d = strtod(s, &e);
 	if (errno || (e == s))
-		THROW(SQLException, "NumberFormatException: For input string %s -- %s", s, STRERROR);
+		THROW(SQLException, "NumberFormatException: For input string %s -- %s", s, System_getLastError());
 	return d;
 }
 

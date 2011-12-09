@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -54,7 +54,7 @@
 
 
 #define T Connection_T
-typedef struct T *T;
+typedef struct Connection_S *T;
 
 //<< Start filter-out
 
@@ -98,7 +98,7 @@ int Connection_isAvailable(T C);
  * @param C A Connection object
  * @return The last time (seconds) this Connection was accessed
  */
-long Connection_getLastAccessedTime(T C);
+time_t Connection_getLastAccessedTime(T C);
 
 
 /**

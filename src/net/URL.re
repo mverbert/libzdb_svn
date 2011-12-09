@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -42,7 +42,7 @@ typedef struct param_t {
 } *param_t;
 
 #define T URL_T
-struct T {
+struct URL_S {
 	int port;
        	char *ref;
 	char *path;
@@ -306,10 +306,9 @@ static T ctor(uchar_t *data) {
 	YYCURSOR = U->data;
 	U->port = UNKNOWN_PORT;
 	YYLIMIT = U->data + strlen(U->data);
-	if (parseURL(U))
-		return U;
-	URL_free(&U);
-	return NULL;
+	if (! parseURL(U))
+                URL_free(&U);
+	return U;
 }
 
 

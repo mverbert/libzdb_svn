@@ -4,7 +4,9 @@
 #include <zdb.h>
 
 /*
- gcc -o select select.c -L/<libzdb>/lib -lzdb -lpthread -I/<libzdb>/include/zdb
+ This example demonstrate most of the functionality of libzdb and can be compiled
+ with a C, OBJ-C(++) or a C++ compiler. 
+ Compile: [gcc|g++|clang|clang++] -o select select.c -L/<libzdb>/lib -lzdb -lpthread -I/<libzdb>/include/zdb
  */
 
 int main(void) {
@@ -15,7 +17,7 @@ int main(void) {
         TRY
         {
                 int i;
-                char *bleach[] = {
+                const char *bleach[] = {
                         "Ichigo Kurosaki", "Rukia Kuchiki", "Orihime Inoue",  "Yasutora \"Chad\" Sado", 
                         "Kisuke Urahara", "Uryū Ishida", "Renji Abarai", 0
                 };

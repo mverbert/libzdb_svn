@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -161,13 +161,13 @@ void Vector_map(T V, void apply(const void *element, void *ap), void *ap) {
 }
 
 
-void **Vector_toArray(T V, void *end) {
+void **Vector_toArray(T V) {
         int i;
         assert(V);
 	void **array = ALLOC((V->length + 1)*sizeof (*array)); 
 	for (i = 0; i < V->length; i++)
 		array[i] = V->array[i];
-	array[i] = end;
+	array[i] = NULL;
 	return array;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -29,10 +29,10 @@
 #include <errno.h>
 #include "xconfig.h"
 
-#include "Mem.h"
+#include "system/Mem.h"
 #include "Str.h"
-#include "Util.h"
 #include "SQLException.h"
+#include "system/System.h"
 
 
 /**
@@ -44,7 +44,7 @@
 /**
  * Version, copyright and contact information
  */
-#define ABOUT   "libzdb/" VERSION " Copyright (C) 2004-2011 Tildeslash Ltd. " LIBZDB_URL
+#define ABOUT   "libzdb/" VERSION " Copyright (C) Tildeslash Ltd. " LIBZDB_URL
 
 
 /* ----------------------------------- Error, Exceptions and report macros */
@@ -53,13 +53,13 @@
 /**
  * The standard abort routine
  */
-#define ABORT	Util_abort
+#define ABORT	System_abort
 
 
 /**
  * The standard debug routine
  */
-#define DEBUG	Util_debug
+#define DEBUG	System_debug
 
 
 /* --------------------------------------------- SQL standard value macros */
@@ -145,20 +145,19 @@
 /** 
  * Microseconds per second 
 */
-#define USEC_PER_SEC 1000000L
+#define USEC_PER_SEC 1000000
 
 
 /** 
  * Microseconds per millisecond 
  */
-#define USEC_PER_MSEC 1000L
+#define USEC_PER_MSEC 1000
 
 
 /* ------------------------------------- General Purpose functional macros */
 
 
 #define IS(a,b) Str_isEqual((a), (b))
-#define STRERROR strerror(errno)
 
 
 /* ---------------------------------------------------------- Build macros */

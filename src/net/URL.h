@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -52,7 +52,7 @@
 
 
 #define T URL_T
-typedef struct T *T;
+typedef struct URL_S *T;
 
 
 /**
@@ -153,7 +153,7 @@ const char *URL_getQueryString(T U);
  * To print all parameter names and their values contained in this 
  * URL, the following code can be used:
  * <pre>
- *   const char **params= URL_getParameterNames(U);
+ *   const char **params = URL_getParameterNames(U);
  *   if (params) 
  *           for (int i = 0; params[i]; i++)
  *                   printf("%s = %s\n", params[i], URL_getParameter(U, params[i]));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -97,7 +97,7 @@ static inline int sqlite3_blocking_exec(sqlite3 *db, const char *zSql, int (*cal
                 int x = 0;\
                 do {\
                         status = (action);\
-                } while (((status == SQLITE_BUSY) || (status == SQLITE_LOCKED)) && (x++ <= 9) && ((Util_usleep(t/(rand() % 10 + 100)))));\
+                } while (((status == SQLITE_BUSY) || (status == SQLITE_LOCKED)) && (x++ <= 9) && ((Time_usleep(t/(rand() % 10 + 100)))));\
         } while (0)
 #endif
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  * Copyright (c) 1994,1995,1996,1997 by David R. Hanson.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -186,12 +186,10 @@
 #define T Exception_T
 /** @cond hide */
 #include <assert.h>
-#ifndef WIN32
 #include <pthread.h>
 #define ThreadData_T pthread_key_t
 #define ThreadData_set(key, value) pthread_setspecific((key), (value))
 #define ThreadData_get(key) pthread_getspecific((key))
-#endif
 typedef struct T {
         const char *name;
 } T;
@@ -250,7 +248,7 @@ void Exception_throw(const T *e, const char *func, const char *file, int line, c
 	volatile int Exception_flag; \
         Exception_Frame Exception_frame; \
         Exception_frame.message[0] = 0; \
-        Exception_frame.prev = ThreadData_get(Exception_stack); \
+        Exception_frame.prev = (Exception_Frame*)ThreadData_get(Exception_stack); \
         assert(ThreadData_set(Exception_stack, &Exception_frame)==0); \
         Exception_flag = setjmp(Exception_frame.env); \
         if (Exception_flag == Exception_entered) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3.
@@ -16,6 +16,7 @@
 
 #ifndef THREAD_INCLUDED
 #define THREAD_INCLUDED
+#include <pthread.h>
 
 /**
  * This interface contains <b>Thread</b> and <b>Mutex</b> abstractions 
@@ -24,25 +25,13 @@
  * @file
  */
 
-
-#ifdef WIN32
-/* ------------------------------------------ Thread interface for Windows */
-#include <process.h>
-#define _WIN32_WINNT 0x400
-#define Sem_T HANDLE
-#define Mutex_T HANDLE
-#define Thread_T HANDLE
-#BE MY GUEST
-#else
-/* -------------------------------------------- Thread interface for POSIX */
-#include <pthread.h>
 #define Thread_T pthread_t
 #define Sem_T   pthread_cond_t			  
 #define Mutex_T pthread_mutex_t
 #define ThreadData_T pthread_key_t
-#define wrapper(F) do { int status= F; \
+#define wrapper(F) do { int status=F; \
         if (status!=0 && status!=ETIMEDOUT) \
-                ABORT("Thread: %s\n", strerror(status)); \
+                ABORT("Thread: %s\n", System_getError(status)); \
         } while (0)
 #define Thread_create(thread, threadFunc, threadArgs) \
         wrapper(pthread_create(&thread, NULL, threadFunc, (void*)threadArgs))
@@ -61,12 +50,11 @@
 #define Mutex_destroy(mutex) wrapper(pthread_mutex_destroy(&mutex))
 #define Mutex_lock(mutex) wrapper(pthread_mutex_lock(&mutex))
 #define Mutex_unlock(mutex) wrapper(pthread_mutex_unlock(&mutex))
-#define LOCK(mutex) do { Mutex_T *_yymutex= &(mutex); \
-        assert(pthread_mutex_lock(_yymutex)==0);
-#define END_LOCK assert(pthread_mutex_unlock(_yymutex)==0); } while (0)
+#define LOCK(mutex) do { Mutex_T *_yymutex=&(mutex); \
+        wrapper(pthread_mutex_lock(_yymutex));
+#define END_LOCK wrapper(pthread_mutex_unlock(_yymutex)); } while (0)
 #define ThreadData_create(key) wrapper(pthread_key_create(&(key), NULL))
 #define ThreadData_set(key, value) pthread_setspecific((key), (value))
 #define ThreadData_get(key) pthread_getspecific((key))
-#endif
 
 #endif

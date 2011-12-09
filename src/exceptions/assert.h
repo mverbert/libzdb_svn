@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011 Tildeslash Ltd. All rights reserved.
+ * Copyright (C) Tildeslash Ltd. All rights reserved.
  * Copyright (c) 1994,1995,1996,1997 by David R. Hanson.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #ifdef NDEBUG
 #define assert(e) ((void)0)
 #else
-#include "AssertException.h"
+#include <AssertException.h>
 extern void assert(int e);
 #define assert(e) ((void)((e)||(Exception_throw(&(AssertException), __func__, __FILE__, __LINE__, #e),0)))
 #endif

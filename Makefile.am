@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Tildeslash Ltd. All rights reserved.
+# Copyright (C) Tildeslash Ltd. All rights reserved.
 
 AUTOMAKE_OPTIONS = foreign no-dependencies subdir-objects
 ACLOCAL_AMFLAGS  = -I m4
@@ -18,16 +18,16 @@ AM_CPPFLAGS     =
 INCLUDES        = -Isrc -Isrc/util -Isrc/net -Isrc/db -Isrc/exceptions
 
 lib_LTLIBRARIES = libzdb.la
-libzdb_la_SOURCES = src/util/Util.c src/util/Str.c src/util/Mem.c \
-                    src/util/Vector.c src/db/ConnectionPool.c \
-                    src/db/Connection.c src/db/ResultSet.c \
-                    src/db/PreparedStatement.c src/util/StringBuffer.c \
+libzdb_la_SOURCES = src/util/Str.c src/util/Vector.c src/util/StringBuffer.c \
+                    src/system/Mem.c src/system/System.c src/system/Time.c \
+                    src/db/ConnectionPool.c src/db/Connection.c src/db/ResultSet.c \
+                    src/db/PreparedStatement.c  \
                     src/exceptions/assert.c src/exceptions/Exception.c
 if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
 
-libzdb_la_LDFLAGS = -version-info 7:4:0
+libzdb_la_LDFLAGS = -version-info 8:0:0
 MODULE_NOVERSION= -module -avoid-version
 
 if ! WITH_LIBDL

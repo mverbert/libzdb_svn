@@ -8,7 +8,7 @@ Section: libs
 Package: libzdb-dev
 Section: libdevel
 Architecture: any
-Depends: libzdb7 (= ${binary:Version})
+Depends: libzdb8 (= ${binary:Version})
 Description: Zild Database Library
  A small and easy to use database API written in C.
  .
@@ -17,7 +17,7 @@ Description: Zild Database Library
  .
  This package contains the development files.
 
-Package: libzdb7
+Package: libzdb8
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
@@ -32,7 +32,7 @@ Description:  Zild Database Library
 Package: libzdb-postgresql
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb7 (>= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb8 (>= ${binary:Version})
 Description:  Zild Database Library - PostgreSQL connectivity
  A small and easy to use database API written in C.
  .
@@ -44,7 +44,7 @@ Description:  Zild Database Library - PostgreSQL connectivity
 Package: libzdb-mysql
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb7 (>= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb8 (>= ${binary:Version})
 Description:  Zild Database Library - MySQL connectivity
  A small and easy to use database API written in C.
  .
@@ -56,7 +56,7 @@ Description:  Zild Database Library - MySQL connectivity
 Package: libzdb-sqlite3
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb7 (>= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb8 (>= ${binary:Version})
 Description:  Zild Database Library - Sqlite3 connectivity
  A small and easy to use database API written in C.
  .

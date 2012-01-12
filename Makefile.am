@@ -27,7 +27,8 @@ if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
 
-libzdb_la_LDFLAGS = -version-info 8:0:0
+LIBRARY_MAJOR_VERSION=8
+libzdb_la_LDFLAGS = -version-info $(LIBRARY_MAJOR_VERSION):0:0
 MODULE_NOVERSION= -module -avoid-version
 
 if ! WITH_LIBDL
@@ -36,7 +37,7 @@ libzdb_la_LIBADD =
 else
 libzdb_la_LDFLAGS += -ldl
 modules_LTLIBRARIES =
-modulesdir=$(libdir)/$(LIBRARY_NAME)
+modulesdir=$(libdir)/@PACKAGE_NAME@$(LIBRARY_MAJOR_VERSION)
 libzdb_la_CPPFLAGS=-DMODULESDIR="\"$(modulesdir)\""
 endif
 

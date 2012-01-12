@@ -1,8 +1,9 @@
 libzdb (2.10) UNRELEASED; urgency=low
 
   * New upstream release
+  * Use versioned directory for modules
 
- -- Matthieu Verbert <matthieu.verbert@aitb.org>  Fri, 09 Dec 2011 08:01:17 +0100
+ -- Matthieu Verbert <matthieu.verbert@aitb.org>  Wed, 11 Jan 2012 21:55:13 +0100
 
 libzdb (2.9) UNRELEASED; urgency=low
 

@@ -255,19 +255,23 @@ static void testPool(const char *testURL) {
                 printf("Creating 20 Connections..");
                 for (i = 0; i<20; i++)
                         Vector_push(v, ConnectionPool_getConnection(pool));
-                assert(20==ConnectionPool_size(pool));
-                assert(ConnectionPool_active(pool)==20);
+                assert(ConnectionPool_size(pool) == 20);
+                assert(ConnectionPool_active(pool) == 20);
                 printf("success\n");
                 printf("Closing Connections down to initial..");
                 while (! Vector_isEmpty(v))
                         Connection_close(Vector_pop(v));
-                assert(ConnectionPool_active(pool)==0);
+                assert(ConnectionPool_active(pool) == 0);
+                assert(ConnectionPool_size(pool) == 20);
                 printf("success\n");
                 printf("Please wait 10 sec for reaper to harvest closed connections..");
+                Connection_T con = ConnectionPool_getConnection(pool); // Activate one connection to verify the reaper does not close any active
                 fflush(stdout);
                 sleep(10);
-                assert(4==ConnectionPool_size(pool));
+                assert(5 == ConnectionPool_size(pool)); // 4 initial connections + the one active we got above
+                assert(1 == ConnectionPool_active(pool));
                 printf("success\n");
+                Connection_close(con);
                 ConnectionPool_stop(pool);
                 ConnectionPool_free(&pool);
                 Vector_free(&v);
@@ -486,7 +490,7 @@ int main(void) {
                     "E.g. sqlite:///tmp/sqlite.db?synchronous=off&heap_limit=2000\n"
                     "E.g. mysql://localhost:3306/test?user=root&password=root\n"
                     "E.g. postgresql://localhost:5432/test?user=root&password=root\n"
-                    "E.g. oracle://localhost:1526/test?user=oracle&password=root\n"
+                    "E.g. oracle://localhost:1526/test?user=scott&password=tiger\n"
                     "To exit, enter '.' on a single line\n\nConnection URL> ";
         ZBDEBUG = true;
         Exception_init();

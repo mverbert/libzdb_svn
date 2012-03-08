@@ -1,12 +1,11 @@
 #include <stdio.h>
-#include <assert.h>
 
+#include <assert.h>
 #include <zdb.h>
 
 /*
- This example demonstrate most of the functionality of libzdb and can be compiled
- with a C, OBJ-C(++) or a C++ compiler. 
- Compile: [gcc|g++|clang|clang++] -o select select.c -L/<libzdb>/lib -lzdb -lpthread -I/<libzdb>/include/zdb
+ This example demonstrate most of the functionality of libzdb and can be compiled with a C, OBJ-C(++) or a C++ compiler.
+ Compile: [gcc -std=c99|g++|clang|clang++] -o select select.c -L/<libzdb>/lib -lzdb -I/<libzdb>/include/zdb
  */
 
 int main(void) {
@@ -16,18 +15,17 @@ int main(void) {
         Connection_T con = ConnectionPool_getConnection(pool);
         TRY
         {
-                int i;
+                Connection_execute(con, "create table bleach(name varchar(255))");
+                PreparedStatement_T p = Connection_prepareStatement(con, "insert into bleach values (?)"); 
                 const char *bleach[] = {
                         "Ichigo Kurosaki", "Rukia Kuchiki", "Orihime Inoue",  "Yasutora \"Chad\" Sado", 
                         "Kisuke Urahara", "Uryū Ishida", "Renji Abarai", 0
                 };
-                Connection_execute(con, "create table bleach(name varchar(255));");
-                PreparedStatement_T p = Connection_prepareStatement(con, "insert into bleach values (?);"); 
-                for (i = 0; bleach[i]; i++) {
+                for (int i = 0; bleach[i]; i++) {
                         PreparedStatement_setString(p, 1, bleach[i]);
                         PreparedStatement_execute(p);
                 }
-                ResultSet_T r = Connection_executeQuery(con, "select name from bleach;");
+                ResultSet_T r = Connection_executeQuery(con, "select name from bleach");
                 while (ResultSet_next(r))
                         printf("%s\n", ResultSet_getString(r, 1));
                 Connection_execute(con, "drop table bleach;");

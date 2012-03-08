@@ -17,6 +17,9 @@ FILTERH         = ./tools/bin/filterh
 AM_CPPFLAGS     = 
 INCLUDES        = -Isrc -Isrc/util -Isrc/net -Isrc/db -Isrc/exceptions
 
+pkgconfigdir 	= $(libdir)/pkgconfig
+pkgconfig_DATA 	= $(LIBRARY_NAME).pc
+
 lib_LTLIBRARIES = libzdb.la
 libzdb_la_SOURCES = src/util/Str.c src/util/Vector.c src/util/StringBuffer.c \
                     src/system/Mem.c src/system/System.c src/system/Time.c \
@@ -100,7 +103,6 @@ oracle_la_SOURCES = src/db/oracle/OracleConnection.c \
 oracle_la_CPPFLAGS = $(DB_ORACLE_CPPFLAGS)
 oracle_la_LDFLAGS = $(DB_ORACLE_LDFLAGS) $(MODULE_NOVERSION)
 endif
-
 
 API_INTERFACES  = src/zdb.h src/db/ConnectionPool.h src/db/Connection.h \
                   src/db/ResultSet.h src/net/URL.h src/db/PreparedStatement.h \

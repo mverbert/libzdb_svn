@@ -60,26 +60,24 @@ int Str_isByteEqual(const char *a, const char *b) {
 
 int Str_startsWith(const char *a, const char *b) {
 	if (a && b) {
-                const char *s = a;
-                while (*a && *b)
-                        if (*a++ != *b++) return false;
-                return ((*a == *b) || (a != s && *b==0));
+	        do 
+	                if (*a++ != *b++) return false;
+                while (*b);
+                return true;
         }
         return false;
 }
 
 
 char *Str_copy(char *dest, const char *src, int n) {
-	char *p = dest;
-	if (! (src && dest)) { 
-		if (dest) 
-			*dest = 0; 
-		return dest; 
-	}
-	for (; (*src && n--); src++, p++)
-		*p = *src;
-	*p = 0;
-	return dest;
+	if (src && dest && (n > 0)) { 
+        	char *t = dest;
+	        while (*src && n--)
+        		*t++ = *src++;
+        	*t = 0;
+	} else if (dest)
+	        *dest = 0;
+        return dest;
 }
 
 

@@ -37,7 +37,6 @@
  * http://user:password@www.foo.bar:8080/document/index.csp?querystring#ref
  * </pre>
  *
- * The primary purpose of this class is to wrap database connection URLs. 
  * The URL class does not normalize the path, nor escape or unescape URL 
  * components according to the escaping mechanism defined in RFC 2396. It is 
  * the responsibility of the caller to escape or unescape fields prior to
@@ -86,6 +85,7 @@ T URL_create(const char *url, ...) __attribute__((format (printf, 1, 2)));
  * @param U A URL object reference
  */
 void URL_free(T *U);
+
 
 /** @name Properties */
 //@{
@@ -176,17 +176,18 @@ const char **URL_getParameterNames(T U);
  */
 const char *URL_getParameter(T U, const char *name);
 
+//@}
+
 
 /**
- * Return a string representation of this URL object
+ * Returns a string representation of this URL object
  * @param U An URL object
  * @return The URL string
  */
 const char *URL_toString(T U);
 
-//@}
 
-/** @name class methods */
+/** @name Class methods */
 //@{
 
 /**

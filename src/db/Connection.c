@@ -97,10 +97,9 @@ static Cop_T getOp(const char *protocol) {
 
 
 static int setDelegate(T C, char **error) {
-        const char *protocol = URL_getProtocol(C->url);
-        C->op = getOp(protocol);
+        C->op = getOp(URL_getProtocol(C->url));
         if (! C->op) {
-                *error = Str_cat("database protocol '%s' not supported", protocol);
+                *error = Str_cat("database protocol '%s' not supported", URL_getProtocol(C->url));
                 return false;
         }
         C->D = C->op->new(C->url, error);
@@ -109,9 +108,8 @@ static int setDelegate(T C, char **error) {
 
 
 static void freePrepared(T C) {
-	PreparedStatement_T ps;
         while (! Vector_isEmpty(C->prepared)) {
-		ps = Vector_pop(C->prepared);
+		PreparedStatement_T ps = Vector_pop(C->prepared);
 		PreparedStatement_free(&ps);
 	}
 }
@@ -129,8 +127,8 @@ T Connection_new(void *pool, char **error) {
         assert(pool);
 	NEW(C);
         C->parent = pool;
-	C->isAvailable = true;
-	C->isInTransaction = false;
+        C->isAvailable = true;
+        C->isInTransaction = false;
         C->prepared = Vector_new(4);
         C->timeout = SQL_DEFAULT_TIMEOUT;
         C->url = ConnectionPool_getURL(pool);
@@ -246,7 +244,7 @@ void Connection_close(T C) {
 void Connection_beginTransaction(T C) {
         assert(C);
         if (! C->op->beginTransaction(C->D)) 
-                THROW(SQLException, Connection_getLastError(C));
+                THROW(SQLException, "%s", Connection_getLastError(C));
         C->isInTransaction++;
 }
 
@@ -257,7 +255,7 @@ void Connection_commit(T C) {
                 C->isInTransaction = 0;
         // Even if we are not in a transaction, call the delegate anyway and propagate any errors
         if (! C->op->commit(C->D)) 
-                THROW(SQLException, Connection_getLastError(C));
+                THROW(SQLException, "%s", Connection_getLastError(C));
 }
 
 
@@ -270,7 +268,7 @@ void Connection_rollback(T C) {
         }
         // Even if we are not in a transaction, call the delegate anyway and propagate any errors
         if (! C->op->rollback(C->D))
-                THROW(SQLException, Connection_getLastError(C));
+                THROW(SQLException, "%s", Connection_getLastError(C));
 }
 
 
@@ -287,46 +285,44 @@ long long int Connection_rowsChanged(T C) {
 
 
 void Connection_execute(T C, const char *sql, ...) {
-        int rv = false;
-        va_list ap;
         assert(C);
         assert(sql);
         if (C->resultSet)
                 ResultSet_free(&C->resultSet);
+        va_list ap;
 	va_start(ap, sql);
-        rv = C->op->execute(C->D, sql, ap);
+        int success = C->op->execute(C->D, sql, ap);
         va_end(ap);
-        if (rv == false) THROW(SQLException, Connection_getLastError(C));
+        if (! success) THROW(SQLException, "%s", Connection_getLastError(C));
 }
 
 
 ResultSet_T Connection_executeQuery(T C, const char *sql, ...) {
-        va_list ap;
         assert(C);
         assert(sql);
         if (C->resultSet)
                 ResultSet_free(&C->resultSet);
+        va_list ap;
 	va_start(ap, sql);
         C->resultSet = C->op->executeQuery(C->D, sql, ap);
         va_end(ap);
         if (! C->resultSet)
-                THROW(SQLException, Connection_getLastError(C));
+                THROW(SQLException, "%s", Connection_getLastError(C));
         return C->resultSet;
 }
 
 
 PreparedStatement_T Connection_prepareStatement(T C, const char *sql, ...) {
-        va_list ap;
-        PreparedStatement_T p;
         assert(C);
         assert(sql);
+        va_list ap;
         va_start(ap, sql);
-        p = C->op->prepareStatement(C->D, sql, ap);
+        PreparedStatement_T p = C->op->prepareStatement(C->D, sql, ap);
         va_end(ap);
         if (p)
                 Vector_push(C->prepared, p);
         else
-                THROW(SQLException, Connection_getLastError(C));
+                THROW(SQLException, "%s", Connection_getLastError(C));
         return p;
 }
 

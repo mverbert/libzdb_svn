@@ -1,11 +1,17 @@
-                         CHANGES version 2.10
+                         CHANGES version 2.10.1
 
               This file summarizes changes made since 1.0
 
+Version 2.10.1
+--------------
+* A zdb.pc library package config file was added. Thanks to 
+  Matthieu Verbert
+* Build, configure and minor code improvements
+
 Version 2.10
 -----------
-* Make libzdb usable and includable in a C++ or a Objective-C(++)
-  project. Include <zdb.h> to use libzdb from C++ or Objective-C++.
+* Libzdb is now compatible with and can be included in C++ or 
+  Objective-C(++) projects.
 * Internal optimizing changes and improvements
 
 Version 2.9

@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) Tildeslash Ltd. All rights reserved.
  *
@@ -78,10 +79,9 @@ static void drainPool(T P) {
 
 
 static int fillPool(T P) {
-	Connection_T con;
-        P->error = 0;
 	for (int i = 0; i < P->initialConnections; i++) {
-		if (! (con = Connection_new(P, &P->error))) {
+                Connection_T con = Connection_new(P, &P->error);
+		if (! con) {
                         if (i > 0) {
                                 DEBUG("Failed to fill the pool with initial connections -- %s\n", P->error);
                                 FREE(P->error);
@@ -97,31 +97,27 @@ static int fillPool(T P) {
 
 static int getActive(T P){
         int i, n = 0, size = Vector_size(P->pool);
-        for (i = 0; i < size; i++) { 
-                Connection_T con = Vector_get(P->pool, i);
-                if (! Connection_isAvailable(con)) n++; 
-        }
+        for (i = 0; i < size; i++)
+                if (! Connection_isAvailable(Vector_get(P->pool, i))) 
+                        n++; 
         return n; 
 }
 
 
 static int reapConnections(T P) {
-        int i = 0;
         int n = 0;
-        Connection_T con = NULL;
         int x = Vector_size(P->pool) - getActive(P) - P->initialConnections;
         time_t timedout = Time_now() - P->connectionTimeout;
-        while (x-->0) {
-                for (i = 0; i < Vector_size(P->pool); i++) {
-                        con = Vector_get(P->pool, i);
-                        if (Connection_isAvailable(con))
-                                break;
-                }
-                if ((! Connection_ping(con)) || (Connection_getLastAccessedTime(con) < timedout)) {
-                        Vector_remove(P->pool, i);
-                        Connection_free(&con);
-                        n++;
-                }
+        for (int i = 0; ((n < x) && (i < Vector_size(P->pool))); i++) {
+                Connection_T con = Vector_get(P->pool, i);
+                if (Connection_isAvailable(con)) {
+                        if ((! Connection_ping(con)) || (Connection_getLastAccessedTime(con) < timedout)) {
+                                Vector_remove(P->pool, i);
+                                Connection_free(&con);
+                                n++;
+                                i--;
+                        }
+                } 
         }
         return n;
 }
@@ -316,7 +312,7 @@ void ConnectionPool_stop(T P) {
 
 
 Connection_T ConnectionPool_getConnection(T P) {
-	Connection_T con = 0;
+	Connection_T con = NULL;
 	assert(P);
 	LOCK(P->mutex) 
         {
@@ -325,10 +321,10 @@ Connection_T ConnectionPool_getConnection(T P) {
                         con = Vector_get(P->pool, i);
                         if (Connection_isAvailable(con) && Connection_ping(con)) {
                                 Connection_setAvailable(con, false);
-                                Connection_setQueryTimeout(con, SQL_DEFAULT_TIMEOUT);
                                 goto done;
                         } 
                 }
+                con = NULL;
                 if (size < P->maxConnections) {
                         con = Connection_new(P, &P->error);
                         if (con) {
@@ -339,8 +335,6 @@ Connection_T ConnectionPool_getConnection(T P) {
                                 DEBUG("Failed to create connection -- %s\n", P->error);
                                 FREE(P->error);
                         }
-                } else {
-                        con = NULL;
                 }
         }
 done: 

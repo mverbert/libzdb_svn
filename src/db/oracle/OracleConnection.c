@@ -286,7 +286,7 @@ int  OracleConnection_execute(T C, const char *sql, va_list ap) {
         va_copy(ap_copy, ap);
         StringBuffer_vappend(C->sb, sql, ap_copy);
         va_end(ap_copy);
-        StringBuffer_removeTrailingSemicolon(C->sb);
+        StringBuffer_trim(C->sb);
         /* Build statement */
         C->lastError = OCIHandleAlloc(C->env, (void **)&stmtp, OCI_HTYPE_STMT, 0, NULL);
         if (C->lastError != OCI_SUCCESS && C->lastError != OCI_SUCCESS_WITH_INFO)
@@ -322,7 +322,7 @@ ResultSet_T OracleConnection_executeQuery(T C, const char *sql, va_list ap) {
         va_copy(ap_copy, ap);
         StringBuffer_vappend(C->sb, sql, ap_copy);
         va_end(ap_copy);
-        StringBuffer_removeTrailingSemicolon(C->sb);
+        StringBuffer_trim(C->sb);
         /* Build statement */
         C->lastError = OCIHandleAlloc(C->env, (void **)&stmtp, OCI_HTYPE_STMT, 0, NULL);
         if (C->lastError != OCI_SUCCESS && C->lastError != OCI_SUCCESS_WITH_INFO)
@@ -356,7 +356,7 @@ PreparedStatement_T OracleConnection_prepareStatement(T C, const char *sql, va_l
         va_copy(ap_copy, ap);
         StringBuffer_vappend(C->sb, sql, ap_copy);
         va_end(ap_copy);
-        StringBuffer_removeTrailingSemicolon(C->sb);
+        StringBuffer_trim(C->sb);
         StringBuffer_prepare4oracle(C->sb);
         /* Build statement */
         C->lastError = OCIHandleAlloc(C->env, (void **)&stmtp, OCI_HTYPE_STMT, 0, 0);

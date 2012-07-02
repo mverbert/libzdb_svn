@@ -1,7 +1,7 @@
 Source: libzdb
 Priority: extra
 Maintainer: Paul J Stevens <paul@nfg.nl>
-Build-Depends: debhelper (>= 5), autotools-dev, cdbs, automake, autoconf, libsqlite3-dev, libpq-dev, libmysqlclient15-dev, libtool, flex, re2c
+Build-Depends: debhelper (>= 5), autotools-dev, cdbs, automake, autoconf, libsqlite3-dev (>= 3.6.23.1-2), libpq-dev, libmysqlclient15-dev, libtool, flex, re2c
 Standards-Version: 3.8.2
 Section: libs
 

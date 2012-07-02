@@ -7,4 +7,5 @@ makebuilddir/libzdb-dev::
 	./bootstrap
 
 # Add here any variable or target overrides you need.
-DEB_CONFIGURE_EXTRA_FLAGS := --enable-libdl
+DEB_CONFIGURE_EXTRA_FLAGS := --enable-libdl --enable-sqliteunlock
+

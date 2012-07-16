@@ -2,7 +2,7 @@
 
 AC_PREREQ([2.53])
 
-AC_INIT([libzdb], [2.10.4], [bugs-libzdb@tildeslash.com])
+AC_INIT([libzdb], [2.10.5], [bugs-libzdb@tildeslash.com])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
@@ -202,7 +202,7 @@ mysql="yes"
 AC_MSG_CHECKING(for mysql)
 AC_ARG_WITH([mysql], 
         AS_HELP_STRING([--with-mysql(=<path>)], 
-                [path is optional and if given should specify the full path to the MySQL
+                [Path is optional and if given should specify the full path to the MySQL
                  configure script, mysql_config. E.g. --with-mysql=/<path>/mysql_config]), 
         [
                 if test "xno" = "x$with_mysql"; then
@@ -263,7 +263,7 @@ postgresql="yes"
 AC_MSG_CHECKING(for postgresql)
 AC_ARG_WITH([postgresql], 
         AS_HELP_STRING([--with-postgresql(=<path>)], 
-                [path is optional and if given should specify the full path to the PostgreSQL
+                [Path is optional and if given should specify the full path to the PostgreSQL
                  configure script, pg_config. E.g. --with-postgresql=/<path>/pg_config]), 
         [
                 if test "xno" = "x$with_postgresql"; then
@@ -311,7 +311,8 @@ sqlite="yes"
 AC_MSG_CHECKING(for SQLite3)
 AC_ARG_WITH([sqlite], 
         AS_HELP_STRING([--with-sqlite=<path>], 
-                [prefix of SQLite installation. e.g. /usr/local/sqlite3 or /usr]), 
+                [Path is optional and if given should specify the full path to the SQLite installation. 
+                 E.g. /usr/local/sqlite3]), 
         [
         if test "xno" = "x$with_sqlite"; then
                 AC_MSG_RESULT([no])

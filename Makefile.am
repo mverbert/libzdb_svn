@@ -31,7 +31,7 @@ libzdb_la_SOURCES += src/net/URL.c
 endif
 
 LIBRARY_MAJOR_VERSION=8
-libzdb_la_LDFLAGS = -version-info $(LIBRARY_MAJOR_VERSION):2:0
+libzdb_la_LDFLAGS = -version-info $(LIBRARY_MAJOR_VERSION):3:0
 MODULE_NOVERSION= -module -avoid-version
 
 if ! WITH_LIBDL

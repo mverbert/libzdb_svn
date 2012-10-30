@@ -44,30 +44,6 @@
 /* ----------------------------------------------------------- Definitions */
 
 
-#define MYSQL_OK 0
-
-static const struct Cop_T mysqlcops = {
-        "mysql",
-        MysqlConnection_new,
-        MysqlConnection_free,
-        MysqlConnection_setQueryTimeout,
-        MysqlConnection_setMaxRows,
-        MysqlConnection_ping,
-        MysqlConnection_beginTransaction,
-        MysqlConnection_commit,
-        MysqlConnection_rollback,
-        MysqlConnection_lastRowId,
-        MysqlConnection_rowsChanged,
-        MysqlConnection_execute,
-        MysqlConnection_executeQuery,
-        MysqlConnection_prepareStatement,
-        MysqlConnection_getLastError
-};
-
-static void __attribute__ ((constructor (300))) register_mysql() {
-  ConnectionDelegate_register(&mysqlcops);
-}
-
 #define T ConnectionDelegate_T
 struct T {
         URL_T url;
@@ -77,12 +53,22 @@ struct T {
 	int lastError;
         StringBuffer_T sb;
 };
+#define MYSQL_OK 0
 
 extern const struct Rop_T mysqlrops;
 extern const struct Pop_T mysqlpops;
 
 
 /* ------------------------------------------------------- Private methods */
+
+
+/* MySQL client library finalization */
+static void onstop(void) {
+        if (mysql_get_client_version() >= 50003)
+                mysql_library_end();
+        else
+                mysql_server_end();
+}
 
 
 static MYSQL *doConnect(URL_T url, char **error) {
@@ -159,6 +145,32 @@ static int prepare(T C, const char *sql, int len, MYSQL_STMT **stmt) {
         return true;
 }
 
+
+/* ------------------------------------------------------------ Operations */
+
+
+static const struct Cop_T mysqlcops = {
+        "mysql",
+        onstop,
+        MysqlConnection_new,
+        MysqlConnection_free,
+        MysqlConnection_setQueryTimeout,
+        MysqlConnection_setMaxRows,
+        MysqlConnection_ping,
+        MysqlConnection_beginTransaction,
+        MysqlConnection_commit,
+        MysqlConnection_rollback,
+        MysqlConnection_lastRowId,
+        MysqlConnection_rowsChanged,
+        MysqlConnection_execute,
+        MysqlConnection_executeQuery,
+        MysqlConnection_prepareStatement,
+        MysqlConnection_getLastError
+};
+
+static void __attribute__ ((constructor (300))) register_mysql() {
+  ConnectionDelegate_register(&mysqlcops);
+}
 
 /* ----------------------------------------------------- Protected methods */
 

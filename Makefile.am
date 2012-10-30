@@ -30,8 +30,8 @@ if ! WITH_ZILD
 libzdb_la_SOURCES += src/net/URL.c 
 endif
 
-LIBRARY_MAJOR_VERSION=8
-libzdb_la_LDFLAGS = -version-info $(LIBRARY_MAJOR_VERSION):3:0
+LIBRARY_MAJOR_VERSION=9
+libzdb_la_LDFLAGS = -version-info $(LIBRARY_MAJOR_VERSION):0:0
 MODULE_NOVERSION= -module -avoid-version
 
 if ! WITH_LIBDL
@@ -142,7 +142,7 @@ distclean-local:
                 config/config.sub
 cleanall: clean distclean
 	-rm -f Makefile.in test/Makefile.in configure aclocal.m4 \
-        libzdb-[0-9].*tar.gz conf/config.*
+        libzdb-[0-9].*tar.gz conf/config.* $(pkgconfig_DATA)
 
 verify: libzdb.la
 	cd $(srcdir)/test && $(MAKE) verify	

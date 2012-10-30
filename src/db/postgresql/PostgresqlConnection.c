@@ -17,7 +17,6 @@
 #include "Config.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <libpq-fe.h>
 
@@ -41,28 +40,6 @@
 /* ----------------------------------------------------------- Definitions */
 
 
-static const struct Cop_T postgresqlcops = {
-        "postgresql",
-        PostgresqlConnection_new,
-        PostgresqlConnection_free,
-        PostgresqlConnection_setQueryTimeout,
-        PostgresqlConnection_setMaxRows,
-        PostgresqlConnection_ping,
-        PostgresqlConnection_beginTransaction,
-        PostgresqlConnection_commit,
-        PostgresqlConnection_rollback,
-        PostgresqlConnection_lastRowId,
-        PostgresqlConnection_rowsChanged,
-        PostgresqlConnection_execute,
-        PostgresqlConnection_executeQuery,
-        PostgresqlConnection_prepareStatement,
-        PostgresqlConnection_getLastError
-};
-
-static void __attribute__ ((constructor (300))) register_postgresql() {
-  ConnectionDelegate_register(&postgresqlcops);
-}
-
 #define T ConnectionDelegate_T
 struct T {
         URL_T url;
@@ -73,12 +50,18 @@ struct T {
 	ExecStatusType lastError;
         StringBuffer_T sb;
 };
-
+static uint32_t statementid = 0;
 extern const struct Rop_T postgresqlrops;
 extern const struct Pop_T postgresqlpops;
 
 
 /* ------------------------------------------------------- Private methods */
+
+
+/* Postgres client library finalization */
+static void onstop(void) {
+        // Not needed, PostgresqlConnection_free below handle finalization
+}
 
 
 static int doConnect(T C, char **error) {
@@ -119,10 +102,10 @@ static int doConnect(T C, char **error) {
         /* Options */
         StringBuffer_append(C->sb, "sslmode='%s' ", IS(URL_getParameter(C->url, "use-ssl"), "true") ? "require" : "disable");
         if (URL_getParameter(C->url, "connect-timeout")) {
-                TRY 
-                        StringBuffer_append(C->sb, "connect_timeout=%d ", Str_parseInt(URL_getParameter(C->url, "connect-timeout")));
+                TRY
+                StringBuffer_append(C->sb, "connect_timeout=%d ", Str_parseInt(URL_getParameter(C->url, "connect-timeout")));
                 ELSE
-                        ERROR("invalid connect timeout value"); 
+                ERROR("invalid connect timeout value");
                 END_TRY;
         } else
                 StringBuffer_append(C->sb, "connect_timeout=%d ", SQL_DEFAULT_TCP_TIMEOUT);
@@ -137,6 +120,32 @@ error:
         return false;
 }
 
+
+/* -------------------------------------------------------- API Operations */
+
+
+const struct Cop_T postgresqlcops = {
+        "postgresql",
+        onstop,
+        PostgresqlConnection_new,
+        PostgresqlConnection_free,
+        PostgresqlConnection_setQueryTimeout,
+        PostgresqlConnection_setMaxRows,
+        PostgresqlConnection_ping,
+        PostgresqlConnection_beginTransaction,
+        PostgresqlConnection_commit,
+        PostgresqlConnection_rollback,
+        PostgresqlConnection_lastRowId,
+        PostgresqlConnection_rowsChanged,
+        PostgresqlConnection_execute,
+        PostgresqlConnection_executeQuery,
+        PostgresqlConnection_prepareStatement,
+        PostgresqlConnection_getLastError
+};
+
+static void __attribute__ ((constructor (300))) register_postgresql() {
+  ConnectionDelegate_register(&postgresqlcops);
+}
 
 /* ----------------------------------------------------- Protected methods */
 
@@ -274,7 +283,8 @@ PreparedStatement_T PostgresqlConnection_prepareStatement(T C, const char *sql, 
         StringBuffer_vappend(C->sb, sql, ap_copy);
         va_end(ap_copy);
         paramCount = StringBuffer_prepare4postgres(C->sb);
-        name = Str_cat("%d", rand());
+        uint32_t t = ++statementid; // increment is atomic
+        name = Str_cat("%d", t);
         C->res = PQprepare(C->db, name, StringBuffer_toString(C->sb), 0, NULL);
         if (C->res && (C->lastError == PGRES_EMPTY_QUERY || C->lastError == PGRES_COMMAND_OK || C->lastError == PGRES_TUPLES_OK))
 		return PreparedStatement_new(PostgresqlPreparedStatement_new(C->db, C->maxRows, name, paramCount), (Pop_T)&postgresqlpops);

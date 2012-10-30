@@ -45,29 +45,6 @@
 
 /* ----------------------------------------------------------- Definitions */
 
-
-static const struct Cop_T oraclesqlcops = {
-        "oracle",
-        OracleConnection_new,
-        OracleConnection_free,
-        OracleConnection_setQueryTimeout,
-        OracleConnection_setMaxRows,
-        OracleConnection_ping,
-        OracleConnection_beginTransaction,
-        OracleConnection_commit,
-        OracleConnection_rollback,
-        OracleConnection_lastRowId,
-        OracleConnection_rowsChanged,
-        OracleConnection_execute,
-        OracleConnection_executeQuery,
-        OracleConnection_prepareStatement,
-        OracleConnection_getLastError
-};
-
-static void __attribute__ ((constructor (300))) register_oracle() {
-  ConnectionDelegate_register(&oraclesqlcops);
-}
-
 #define ERB_SIZE 152
 #define ORACLE_TRANSACTION_PERIOD 10
 
@@ -93,6 +70,12 @@ extern const struct Pop_T oraclepops;
 
 
 /* ------------------------------------------------------- Private methods */
+
+
+/* Oracle client library finalization */
+static void onstop(void) {
+        // Not needed, OracleConnection_free below handle finalization
+}
 
 
 static int doConnect(T C, URL_T url, char**  error) {
@@ -155,6 +138,32 @@ static int doConnect(T C, URL_T url, char**  error) {
         return true;
 }
 
+
+/* ------------------------------------------------------------ Operations */
+
+
+static const struct Cop_T oraclesqlcops = {
+        "oracle",
+        onstop,
+        OracleConnection_new,
+        OracleConnection_free,
+        OracleConnection_setQueryTimeout,
+        OracleConnection_setMaxRows,
+        OracleConnection_ping,
+        OracleConnection_beginTransaction,
+        OracleConnection_commit,
+        OracleConnection_rollback,
+        OracleConnection_lastRowId,
+        OracleConnection_rowsChanged,
+        OracleConnection_execute,
+        OracleConnection_executeQuery,
+        OracleConnection_prepareStatement,
+        OracleConnection_getLastError
+};
+
+static void __attribute__ ((constructor (300))) register_oracle() {
+  ConnectionDelegate_register(&oraclesqlcops);
+}
 
 /* ----------------------------------------------------- Protected methods */
 

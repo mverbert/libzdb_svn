@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <libpq-fe.h>
 
@@ -69,27 +70,51 @@ struct T {
 
 
 /* Unescape the buffer pointed to by s 'in-place' using the (un)escape mechanizm
- described at http://www.postgresql.org/docs/8.3/interactive/datatype-binary.html
+ described at http://www.postgresql.org/docs/9.0/static/datatype-binary.html
  The new size of s is assigned to r. Returns s. See PostgresqlResultSet_getBlob()
  below for usage and further info. See also Postgres' PQunescapeBytea() function
  which this function mirrors except it does not allocate a new string.
  */
 static inline const void *unescape_bytea(uchar_t *s, int len, int *r) {
-        uchar_t byte;
-        register int i, j;
         assert(s);
-        for (i = j = 0; j < len; i++, j++) {
-                if ((s[i] = s[j]) == '\\') {
-                        if (s[j + 1] == '\\')
+        register int i, j;
+        if (s[0] == '\\' && s[1] == 'x') { // bytea hex format
+                static const uchar_t hex[128] = {
+                        0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0,  1,  2,  3,  4,  5,  6, 7, 8, 9, 0, 0, 0, 0, 0, 0,
+                        0, 10, 11, 12, 13, 14, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 10, 11, 12, 13, 14, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                };
+                for (i = 0, j = 2; j < len; j++) {
+                        /*
+                         According to the doc, whitespace between hex pairs are allowed. Blarg!!
+                         */
+                        if (isxdigit(s[j])) {
+                                s[i] = hex[s[j]] << 4;
+                                s[i] |= hex[s[j + 1]];
+                                i++;
                                 j++;
-                        else if ((ISFIRSTOCTDIGIT(s[j + 1])) 
-                                   && (ISOCTDIGIT(s[j + 2])) 
-                                   && (ISOCTDIGIT(s[j + 3]))) {
-                                byte = OCTVAL(s[j + 1]);
-                                byte = (byte << 3) + OCTVAL(s[j + 2]);
-                                byte = (byte << 3) + OCTVAL(s[j + 3]);
-                                s[i] = byte;
-                                j += 3;
+                        }
+                }
+        } else { // bytea escaped format
+                uchar_t byte;
+                for (i = j = 0; j < len; i++, j++) {
+                        if ((s[i] = s[j]) == '\\') {
+                                if (s[j + 1] == '\\')
+                                        j++;
+                                else if ((ISFIRSTOCTDIGIT(s[j + 1]))
+                                         && (ISOCTDIGIT(s[j + 2]))
+                                         && (ISOCTDIGIT(s[j + 3]))) {
+                                        byte = OCTVAL(s[j + 1]);
+                                        byte = (byte << 3) + OCTVAL(s[j + 2]);
+                                        byte = (byte << 3) + OCTVAL(s[j + 3]);
+                                        s[i] = byte;
+                                        j += 3;
+                                }
                         }
                 }
         }
@@ -184,8 +209,7 @@ const char *PostgresqlResultSet_getString(T R, int columnIndex) {
  * As a hack to avoid extra allocation and complications by using PQunescapeBytea()
  * we instead unescape the buffer retrieved via PQgetvalue 'in-place'. This should 
  * be safe as unescape will only modify internal bytes in the buffer and not change
- * the buffer pointer nor expand the buffer. That is, as long as Postgres does not 
- * change the escaping mechanizm. See also unescape_bytea() above.
+ * the buffer pointer. See also unescape_bytea() above.
  */
 const void *PostgresqlResultSet_getBlob(T R, int columnIndex, int *size) {
         TEST_INDEX

@@ -2,7 +2,7 @@
 
 AC_PREREQ([2.53])
 
-AC_INIT([libzdb], [2.10.6], [bugs-libzdb@tildeslash.com])
+AC_INIT([libzdb], [2.11], [bugs-libzdb@tildeslash.com])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
@@ -41,6 +41,23 @@ AC_PROG_LIBTOOL
 # ---------------------------------------------------------------------------
 # Build options
 # ---------------------------------------------------------------------------
+
+AC_ARG_ENABLE(profiling,
+        AS_HELP_STRING([--enable-profiling],
+                [Build with debug and profiling options]),
+    [
+        if test "x$enableval" = "xyes" ; then
+                CFLAGS=`echo $CFLAGS|sed 's/-O.//'`
+                CFLAGS="$CFLAGS -g -pg"
+                profile="true"
+        else
+                profile="false"
+        fi
+    ],
+    [
+        profile="false"
+    ]
+)
 
 AC_ARG_ENABLE(optimized,
         AS_HELP_STRING([--enable-optimized], 
@@ -100,22 +117,6 @@ AC_ARG_ENABLE([protected],
              protect="false"
         fi
      ],[protect="false"]
-)
-
-AC_ARG_ENABLE(profiling,
-        AS_HELP_STRING([--enable-profiling],
-                [Build with debug and profiling options]),
-    [
-        if test "x$enableval" = "xyes" ; then
-                CFLAGS="$CFLAGS -g -pg"
-                profile="true"
-        else
-                profile="false"
-        fi
-    ],
-    [
-        profile="false"
-    ]
 )
 
 AC_ARG_ENABLE(libdl, 
@@ -199,6 +200,15 @@ AC_CHECK_LIB([pthread], [pthread_create], [], [AC_MSG_ERROR([POSIX thread librar
 # Database Libraries 
 
 mysql="yes"
+check_mysql_config() 
+{
+        AC_PATH_PROG([MYSQLCONFIG], [mysql_config], [no], [$PATH:/usr/local/bin:/usr/local/mysql/bin])
+        if test "x$MYSQLCONFIG" = "xno" 
+        then
+                AC_MSG_WARN([mysql_config is required to build libzdb with mysql])
+                mysql="no"
+        fi
+}
 AC_MSG_CHECKING(for mysql)
 AC_ARG_WITH([mysql], 
         AS_HELP_STRING([--with-mysql(=<path>)], 
@@ -210,23 +220,12 @@ AC_ARG_WITH([mysql],
                         mysql="no"
                 else
                         AC_MSG_RESULT([yes])
-                        AC_CHECK_FILE([$with_mysql], 
-                        [
-                                MYSQLCONFIG=$with_mysql
-                        ], 
-                        [
-                                AC_MSG_WARN([mysql_config given as $with_mysql not found])
-                                mysql="no"
-                        ])        
+                        AC_CHECK_FILE([$with_mysql], [MYSQLCONFIG=$with_mysql], [check_mysql_config])        
                 fi
         ],
         [
                 AC_MSG_RESULT([yes])
-                AC_PATH_PROG([MYSQLCONFIG], [mysql_config], [no], [$PATH:/usr/local/bin:/usr/local/mysql/bin])
-                if test "x$MYSQLCONFIG" = "xno"; then
-                        AC_MSG_WARN([mysql_config is required to build libzdb with mysql])
-                        mysql="no"
-                fi
+                check_mysql_config
         ])
 if test "xyes" = "x$mysql"; then
         svd_CPPFLAGS=$CPPFLAGS
@@ -260,6 +259,15 @@ fi
 AM_CONDITIONAL([WITH_MYSQL], test "xyes" = "x$mysql")
 
 postgresql="yes"
+check_postgres_config() 
+{
+        AC_PATH_PROG([PGCONFIG], [pg_config], [no], [$PATH:/usr/local/bin:/usr/local/pgsql/bin])
+        if test "x$PGCONFIG" = "xno"
+        then
+                AC_MSG_WARN([pg_config is required to build libzdb with postgresql])
+                postgresql="no"
+        fi
+}
 AC_MSG_CHECKING(for postgresql)
 AC_ARG_WITH([postgresql], 
         AS_HELP_STRING([--with-postgresql(=<path>)], 
@@ -271,23 +279,12 @@ AC_ARG_WITH([postgresql],
                         postgresql="no"
                 else
                         AC_MSG_RESULT([yes])
-                        AC_CHECK_FILE([$with_postgresql], 
-                        [
-                                PGCONFIG=$with_postgresql
-                        ], 
-                        [
-                                AC_MSG_WARN([pg_config given as $with_postgresql not found])
-                                postgresql="no"
-                        ])        
+                        AC_CHECK_FILE([$with_postgresql], [PGCONFIG=$with_postgresql],[check_postgres_config])
                 fi
         ],
         [
                 AC_MSG_RESULT([yes])
-                AC_PATH_PROG([PGCONFIG], [pg_config], [no], [$PATH:/usr/local/bin:/usr/local/pgsql/bin])
-                if test "x$PGCONFIG" = "xno"; then
-                        AC_MSG_WARN([pg_config is required to build libzdb with postgresql])
-                        postgresql="no"
-                fi
+                check_postgres_config
         ])
 if test "xyes" = "x$postgresql"; then
         svd_CPPFLAGS=$CPPFLAGS
@@ -307,19 +304,21 @@ if test "xyes" = "x$postgresql"; then
 fi
 AM_CONDITIONAL([WITH_POSTGRESQL], test "xyes" = "x$postgresql")
 
+
 sqlite="yes"
 AC_MSG_CHECKING(for SQLite3)
 AC_ARG_WITH([sqlite], 
-        AS_HELP_STRING([--with-sqlite=<path>], 
+        AS_HELP_STRING([--with-sqlite(=<path>)], 
                 [Path is optional and if given should specify the full path to the SQLite installation. 
                  E.g. /usr/local/sqlite3]), 
         [
-        if test "xno" = "x$with_sqlite"; then
-                AC_MSG_RESULT([no])
-                sqlite="no"
-        else
-                AC_MSG_RESULT([yes])
-        fi
+        	if test "xno" = "x$with_sqlite"; then
+                	AC_MSG_RESULT([no])
+                	sqlite="no"
+    	        else
+                	AC_MSG_RESULT([yes])
+               		AC_CHECK_FILE([$with_sqlite], [ SQLITE_PATH="$with_sqlite" ],[ sqlite="no" ])
+        	fi
         ], 
         [
                AC_MSG_RESULT([yes])
@@ -329,18 +328,23 @@ if test "xyes" = "x$sqlite"; then
        svd_LDFLAGS=$LDFLAGS
        svd_CPPFLAGS=$CPPFLAGS
        svd_LIBS=$LIBS
-       CPPFLAGS="-I$with_sqlite/include $CPPFLAGS"
-       LDFLAGS="-L$with_sqlite/lib $LDFLAGS"
-       AC_CHECK_HEADERS([sqlite3.h], [sqlite="yes"], [sqlite="no"])
-       AC_CHECK_LIB([sqlite3], [sqlite3_open], [], [sqlite="no"])
+       if test "$SQLITE_PATH"; then
+       		CPPFLAGS="-I$SQLITE_PATH/include $CPPFLAGS"
+       		LDFLAGS="-L$SQLITE_PATH/lib $LDFLAGS"
+       fi
+       AC_SEARCH_LIBS([sqlite3_open], [sqlite3], [], [sqlite="no"])
        if test "xyes" = "x$sqlite"; then
-            DB_SQLITE_CPPFLAGS="-I$with_sqlite/include"
-            DB_SQLITE_LDFLAGS="-L$with_sqlite/lib/ -lsqlite3"
+            if test "$SQLITE_PATH"; then
+            	DB_SQLITE_CPPFLAGS="-I$SQLITE_PATH/include"
+            	DB_SQLITE_LDFLAGS="-L$SQLITE_PATH/lib -lsqlite3"
+	    else
+            	DB_SQLITE_LDFLAGS="-lsqlite3"
+	    fi
             AC_SUBST(DB_SQLITE_CPPFLAGS)
             AC_SUBST(DB_SQLITE_LDFLAGS)                        
-            AC_DEFINE([HAVE_LIBSQLITE3])
-            AC_CHECK_LIB([sqlite3], [sqlite3_soft_heap_limit], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT], [], [sqlite3_soft_heap_limit])], [], [-ldl])
-            AC_CHECK_LIB([sqlite3], [sqlite3_soft_heap_limit64], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT64], [], [sqlite3_soft_heap_limit64])], [], [-ldl])
+            AC_DEFINE([HAVE_LIBSQLITE3], 1, [Define to 1 to enable sqlite3])
+            AC_SEARCH_LIBS([sqlite3_soft_heap_limit], [sqlite3], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT], [1], [sqlite3_soft_heap_limit])], [], [-ldl])
+            AC_SEARCH_LIBS([sqlite3_soft_heap_limit64], [sqlite3], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT64], [1], [sqlite3_soft_heap_limit64])], [], [-ldl])
        fi
        LDFLAGS=$svd_LDFLAGS
        CPPFLAGS=$svd_CPPFLAGS

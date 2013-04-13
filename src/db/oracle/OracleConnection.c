@@ -45,6 +45,29 @@
 
 /* ----------------------------------------------------------- Definitions */
 
+static const struct Cop_T oraclesqlcops = {
+        "oracle",
+        OracleConnection_onstop,
+        OracleConnection_new,
+        OracleConnection_free,
+        OracleConnection_setQueryTimeout,
+        OracleConnection_setMaxRows,
+        OracleConnection_ping,
+        OracleConnection_beginTransaction,
+        OracleConnection_commit,
+        OracleConnection_rollback,
+        OracleConnection_lastRowId,
+        OracleConnection_rowsChanged,
+        OracleConnection_execute,
+        OracleConnection_executeQuery,
+        OracleConnection_prepareStatement,
+        OracleConnection_getLastError
+};
+
+static void __attribute__ ((constructor (300))) register_oracle() {
+  ConnectionDelegate_register(&oraclesqlcops);
+}
+
 #define ERB_SIZE 152
 #define ORACLE_TRANSACTION_PERIOD 10
 
@@ -70,12 +93,6 @@ extern const struct Pop_T oraclepops;
 
 
 /* ------------------------------------------------------- Private methods */
-
-
-/* Oracle client library finalization */
-static void onstop(void) {
-        // Not needed, OracleConnection_free below handle finalization
-}
 
 
 static int doConnect(T C, URL_T url, char**  error) {
@@ -125,10 +142,10 @@ static int doConnect(T C, URL_T url, char**  error) {
         C->lastError = OCIHandleAlloc(C->env, (void**)&C->usr, OCI_HTYPE_SESSION, 0, NULL);
         if (C->lastError != OCI_SUCCESS && C->lastError != OCI_SUCCESS_WITH_INFO)
                 ORAERROR(C);
-        C->lastError = OCIAttrSet(C->usr, OCI_HTYPE_SESSION, (dvoid *)username, strlen(username), OCI_ATTR_USERNAME, C->err);
+        C->lastError = OCIAttrSet(C->usr, OCI_HTYPE_SESSION, (dvoid *)username, (int)strlen(username), OCI_ATTR_USERNAME, C->err);
         if (C->lastError != OCI_SUCCESS && C->lastError != OCI_SUCCESS_WITH_INFO)
                 ORAERROR(C);
-        C->lastError = OCIAttrSet(C->usr, OCI_HTYPE_SESSION, (dvoid *)password, strlen(password), OCI_ATTR_PASSWORD, C->err);
+        C->lastError = OCIAttrSet(C->usr, OCI_HTYPE_SESSION, (dvoid *)password, (int)strlen(password), OCI_ATTR_PASSWORD, C->err);
         if (C->lastError != OCI_SUCCESS && C->lastError != OCI_SUCCESS_WITH_INFO)
                 ORAERROR(C);
         C->lastError = OCISessionBegin(C->svc, C->err, C->usr, OCI_CRED_RDBMS, OCI_DEFAULT);
@@ -139,31 +156,6 @@ static int doConnect(T C, URL_T url, char**  error) {
 }
 
 
-/* ------------------------------------------------------------ Operations */
-
-
-static const struct Cop_T oraclesqlcops = {
-        "oracle",
-        onstop,
-        OracleConnection_new,
-        OracleConnection_free,
-        OracleConnection_setQueryTimeout,
-        OracleConnection_setMaxRows,
-        OracleConnection_ping,
-        OracleConnection_beginTransaction,
-        OracleConnection_commit,
-        OracleConnection_rollback,
-        OracleConnection_lastRowId,
-        OracleConnection_rowsChanged,
-        OracleConnection_execute,
-        OracleConnection_executeQuery,
-        OracleConnection_prepareStatement,
-        OracleConnection_getLastError
-};
-
-static void __attribute__ ((constructor (300))) register_oracle() {
-  ConnectionDelegate_register(&oraclesqlcops);
-}
 
 /* ----------------------------------------------------- Protected methods */
 
@@ -412,6 +404,11 @@ const char *OracleConnection_getLastError(T C) {
                         break;
         }
         return C->erb;
+}
+
+/* Oracle client library finalization */
+void OracleConnection_onstop(void) {
+        // Not needed, OracleConnection_free below handle finalization
 }
 
 #ifdef PACKAGE_PROTECTED

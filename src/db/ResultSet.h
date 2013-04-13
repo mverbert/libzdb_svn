@@ -78,6 +78,8 @@
  * ResultSet_getInt() to get the value as an integer. In the latter case, note
  * that if the column value cannot be converted to a number, an SQLException is thrown.
  *
+ * <i>A ResultSet is reentrant, but not thread-safe and should only be used by one thread (at the time).</i>
+ *
  * @see Connection.h PreparedStatement.h SQLException.h
  * @file
  */
@@ -153,6 +155,7 @@ long ResultSet_getColumnSize(T R, int columnIndex);
  * @param R A ResultSet object
  * @return true if the new current row is valid; false if there are no
  * more rows
+ * @exception SQLException if a database access error occurs
  */
 int ResultSet_next(T R);
 

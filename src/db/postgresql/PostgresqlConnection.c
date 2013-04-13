@@ -40,6 +40,29 @@
 /* ----------------------------------------------------------- Definitions */
 
 
+static const struct Cop_T postgresqlcops = {
+        "postgresql",
+        PostgresqlConnection_onstop,
+        PostgresqlConnection_new,
+        PostgresqlConnection_free,
+        PostgresqlConnection_setQueryTimeout,
+        PostgresqlConnection_setMaxRows,
+        PostgresqlConnection_ping,
+        PostgresqlConnection_beginTransaction,
+        PostgresqlConnection_commit,
+        PostgresqlConnection_rollback,
+        PostgresqlConnection_lastRowId,
+        PostgresqlConnection_rowsChanged,
+        PostgresqlConnection_execute,
+        PostgresqlConnection_executeQuery,
+        PostgresqlConnection_prepareStatement,
+        PostgresqlConnection_getLastError
+};
+
+static void __attribute__ ((constructor (300))) register_postgresql() {
+  ConnectionDelegate_register(&postgresqlcops);
+}
+
 #define T ConnectionDelegate_T
 struct T {
         URL_T url;
@@ -56,12 +79,6 @@ extern const struct Pop_T postgresqlpops;
 
 
 /* ------------------------------------------------------- Private methods */
-
-
-/* Postgres client library finalization */
-static void onstop(void) {
-        // Not needed, PostgresqlConnection_free below handle finalization
-}
 
 
 static int doConnect(T C, char **error) {
@@ -120,32 +137,6 @@ error:
         return false;
 }
 
-
-/* -------------------------------------------------------- API Operations */
-
-
-const struct Cop_T postgresqlcops = {
-        "postgresql",
-        onstop,
-        PostgresqlConnection_new,
-        PostgresqlConnection_free,
-        PostgresqlConnection_setQueryTimeout,
-        PostgresqlConnection_setMaxRows,
-        PostgresqlConnection_ping,
-        PostgresqlConnection_beginTransaction,
-        PostgresqlConnection_commit,
-        PostgresqlConnection_rollback,
-        PostgresqlConnection_lastRowId,
-        PostgresqlConnection_rowsChanged,
-        PostgresqlConnection_execute,
-        PostgresqlConnection_executeQuery,
-        PostgresqlConnection_prepareStatement,
-        PostgresqlConnection_getLastError
-};
-
-static void __attribute__ ((constructor (300))) register_postgresql() {
-  ConnectionDelegate_register(&postgresqlcops);
-}
 
 /* ----------------------------------------------------- Protected methods */
 
@@ -295,6 +286,11 @@ PreparedStatement_T PostgresqlConnection_prepareStatement(T C, const char *sql, 
 const char *PostgresqlConnection_getLastError(T C) {
 	assert(C);
         return C->res ? PQresultErrorMessage(C->res) : "unknown error";
+}
+
+/* Postgres client library finalization */
+void  PostgresqlConnection_onstop(void) {
+        // Not needed, PostgresqlConnection_free below handle finalization
 }
 
 #ifdef PACKAGE_PROTECTED

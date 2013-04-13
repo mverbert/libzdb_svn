@@ -2,7 +2,7 @@
 
 AC_PREREQ([2.53])
 
-AC_INIT([libzdb], [2.11.1], [bugs-libzdb@tildeslash.com])
+AC_INIT([libzdb], [2.11.2], [bugs-libzdb@tildeslash.com])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
@@ -194,8 +194,9 @@ AC_SUBST(UNIT_TEST)
 # Libraries 
 # ---------------------------------------------------------------------------
 
-AC_CHECK_LIB([pthread], [pthread_create], [], [AC_MSG_ERROR([POSIX thread library is required])])
-#AC_SEARCH_LIBS(crypt, crypt)
+AC_SEARCH_LIBS([pthread_create], [pthread], [], [AC_MSG_ERROR([POSIX thread library is required])])
+#AC_SEARCH_LIBS([crypt], [crypt])
+#AC_SEARCH_LIBS([dlopen], [dl])
 
 # Database Libraries 
 
@@ -245,6 +246,7 @@ if test "xyes" = "x$mysql"; then
                 ]])
                 ],[mysql="yes"],[mysql="no"])
         ], [mysql="no"], [])
+#        AC_CHECK_LIB([mysqlclient], [mysql_init], [AC_CHECK_LIB([z], [compress],[mysql="yes"],[mysql="no"])], [mysql="no"], [-lz])
         if test "xyes" = "x$mysql"; then
                 DB_MYSQL_CPPFLAGS="`$MYSQLCONFIG --include`"
                 DB_MYSQL_LDFLAGS="`$MYSQLCONFIG --libs`"
@@ -345,6 +347,7 @@ if test "xyes" = "x$sqlite"; then
             AC_DEFINE([HAVE_LIBSQLITE3], 1, [Define to 1 to enable sqlite3])
             AC_SEARCH_LIBS([sqlite3_soft_heap_limit], [sqlite3], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT], [1], [sqlite3_soft_heap_limit])], [], [-ldl])
             AC_SEARCH_LIBS([sqlite3_soft_heap_limit64], [sqlite3], [AC_DEFINE([HAVE_SQLITE3_SOFT_HEAP_LIMIT64], [1], [sqlite3_soft_heap_limit64])], [], [-ldl])
+            AC_SEARCH_LIBS([sqlite3_errstr], [sqlite3], [AC_DEFINE([HAVE_SQLITE3_ERRSTR], [1], [sqlite3_errstr])], [], [-ldl])
        fi
        LDFLAGS=$svd_LDFLAGS
        CPPFLAGS=$svd_CPPFLAGS
@@ -428,7 +431,7 @@ fi
 # Outputs
 # ---------------------------------------------------------------------------
 
-AM_CONFIG_HEADER(src/xconfig.h)
+AC_CONFIG_HEADERS(src/xconfig.h)
 AC_CONFIG_FILES([Makefile test/Makefile])
 AC_CONFIG_FILES([zdb.pc])
 AC_OUTPUT

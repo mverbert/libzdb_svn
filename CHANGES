@@ -1,9 +1,17 @@
-                         CHANGES version 2.11.1
+                         CHANGES version 2.11.2
 
               This file summarizes changes made since 1.0
+              
+Version 2.11.2
+--------------
+* New: Throw SQLException if a database access error occurs
+  when ResultSet_next() is called. Previously, access errors
+  could be masked as end of result set. Thanks to JiaQiang Xu.
+* Fixes: Possible mem leak in Oracle's blob operation fixed 
+  (Volodymyr Tarasenko)
 
-Version 2.11
-------------
+Version 2.11.1
+--------------
 * Fixes: MySQL: Fixed a ResultSet bind memory error which could occur
   if string or blob columns of different size caused successive buffer
   reallocation. Thanks to Ryan Addams for discovering the problem.

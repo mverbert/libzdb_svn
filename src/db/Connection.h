@@ -48,6 +48,8 @@
  * A transaction will also rollback if the database is closed or if an 
  * error occurs. Nested transactions are not allowed.
  *
+ * <i>A Connection is reentrant, but not thread-safe and should only be used by one thread (at the time).</i>
+ *
  * @see ResultSet.h PreparedStatement.h SQLException.h
  * @file
  */
@@ -57,14 +59,6 @@
 typedef struct Connection_S *T;
 
 //<< Protected methods
-
-/**
- * On stop event handler called once by ConnectionPool_stop(). Can be used to 
- * gracefully finalise and release underlying libraries allocated resources.
- * @param pool The parent connection pool
- */
-void Connection_onstop(void *pool);
-
 
 /**
  * Create a new Connection.
@@ -116,6 +110,14 @@ time_t Connection_getLastAccessedTime(T C);
  * @return true if this Connection is in a transaction otherwise false
  */
 int Connection_isInTransaction(T C);
+
+
+/**
+ * On stop event handler called once by ConnectionPool_stop(). Can be used to 
+ * gracefully finalise and release underlying libraries allocated resources.
+ * @param pool The parent connection pool
+ */
+void Connection_onstop(void *pool);
 
 //>> End Protected methods
 
@@ -317,7 +319,10 @@ PreparedStatement_T Connection_prepareStatement(T C, const char *sql, ...) __att
 /**
  * This method can be used to obtain a string describing the last
  * error that occurred. Inside a CATCH-block you can also find
- * the error message directly in the variable Exception_frame.message
+ * the error message directly in the variable Exception_frame.message.
+ * It is recommended to use this variable instead since it contains both
+ * SQL errors and API errors such as parameter index out of range etc, 
+ * while Connection_getLastError() might only show SQL errors
  * @param C A Connection object
  * @return A string explaining the last error
  */

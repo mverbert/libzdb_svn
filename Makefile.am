@@ -31,7 +31,7 @@ libzdb_la_SOURCES += src/net/URL.c
 endif
 
 LIBRARY_MAJOR_VERSION=9
-libzdb_la_LDFLAGS = -version-info $(LIBRARY_MAJOR_VERSION):1:0
+libzdb_la_LDFLAGS = -version-info $(LIBRARY_MAJOR_VERSION):2:0
 MODULE_NOVERSION= -module -avoid-version
 
 if ! WITH_LIBDL
@@ -134,7 +134,8 @@ distclean-local:
                 build/ \
                 $(LIBRARY_NAME)
 	-rm -f  doc/api-docs/*h.html \
-                doc/api-docs/*.css \
+                doc/api-docs/doxygen.css \
+                doc/api-docs/tabs.css \
                 doc/api-docs/*.gif \
                 tools/bin/filterh \
                 src/xconfig.h.in \

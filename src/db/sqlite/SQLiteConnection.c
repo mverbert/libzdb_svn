@@ -40,6 +40,29 @@
 /* ----------------------------------------------------------- Definitions */
 
 
+static const struct Cop_T sqlite3cops = {
+        "sqlite",
+        SQLiteConnection_onstop,
+        SQLiteConnection_new,
+        SQLiteConnection_free,
+        SQLiteConnection_setQueryTimeout,
+        SQLiteConnection_setMaxRows,
+        SQLiteConnection_ping,
+        SQLiteConnection_beginTransaction,
+        SQLiteConnection_commit,
+        SQLiteConnection_rollback,
+        SQLiteConnection_lastRowId,
+        SQLiteConnection_rowsChanged,
+        SQLiteConnection_execute,
+        SQLiteConnection_executeQuery,
+        SQLiteConnection_prepareStatement,
+        SQLiteConnection_getLastError
+};
+
+static void __attribute__ ((constructor (300))) register_sqlite() {
+  ConnectionDelegate_register(&sqlite3cops);
+}
+
 #define T ConnectionDelegate_T
 struct T {
         URL_T url;
@@ -55,14 +78,6 @@ extern const struct Pop_T sqlite3pops;
 
 
 /* ------------------------------------------------------- Private methods */
-
-
-/* SQLite3 client library finalization */
-static void onstop(void) {
-#if SQLITE_VERSION_NUMBER >= 3006000
-        sqlite3_shutdown();
-#endif
-}
 
 
 static sqlite3 *doConnect(URL_T url, char **error) {
@@ -123,31 +138,6 @@ static int setProperties(T C, char **error) {
 }
 
 
-/* ------------------------------------------------------------ Operations */
-
-
-const struct Cop_T sqlite3cops = {
-        "sqlite",
-        onstop,
-        SQLiteConnection_new,
-        SQLiteConnection_free,
-        SQLiteConnection_setQueryTimeout,
-        SQLiteConnection_setMaxRows,
-        SQLiteConnection_ping,
-        SQLiteConnection_beginTransaction,
-        SQLiteConnection_commit,
-        SQLiteConnection_rollback,
-        SQLiteConnection_lastRowId,
-        SQLiteConnection_rowsChanged,
-        SQLiteConnection_execute,
-        SQLiteConnection_executeQuery,
-        SQLiteConnection_prepareStatement,
-        SQLiteConnection_getLastError
-};
-
-static void __attribute__ ((constructor (300))) register_sqlite() {
-  ConnectionDelegate_register(&sqlite3cops);
-}
 
 /* ----------------------------------------------------- Protected methods */
 
@@ -295,6 +285,14 @@ PreparedStatement_T SQLiteConnection_prepareStatement(T C, const char *sql, va_l
 const char *SQLiteConnection_getLastError(T C) {
 	assert(C);
 	return sqlite3_errmsg(C->db);
+}
+
+
+/* Class Method: SQLite3 client library finalization */
+void SQLiteConnection_onstop(void) {
+#if SQLITE_VERSION_NUMBER >= 3006000
+        sqlite3_shutdown();
+#endif
 }
 
 #ifdef PACKAGE_PROTECTED

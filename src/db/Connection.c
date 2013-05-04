@@ -81,7 +81,7 @@ static Cop_T getOp(const char *protocol) {
       break;
     {
       StringBuffer_T fn = StringBuffer_new(MODULESDIR "/");
-      StringBuffer_append(fn, protocol);
+      StringBuffer_append(fn, "%s", protocol);
       StringBuffer_append(fn, ".so");
       void * lib = dlopen(StringBuffer_toString(fn), RTLD_LAZY);
       StringBuffer_free(&fn);

@@ -1,13 +1,14 @@
 Source: libzdb
 Priority: extra
 Maintainer: Paul J Stevens <paul@nfg.nl>
-Build-Depends: debhelper (>= 5), autotools-dev, cdbs, automake, autoconf, libsqlite3-dev (>= 3.6.23.1-2), libpq-dev, libmysqlclient15-dev, libtool, flex, re2c
+Build-Depends: debhelper (>= 8.1.3), autotools-dev, cdbs (>= 0.4.93~), automake, autoconf, libsqlite3-dev (>= 3.6.23.1-2), libpq-dev, libmysqlclient15-dev, libtool, flex, re2c
 Standards-Version: 3.8.2
 Section: libs
 
 Package: libzdb-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libzdb9 (= ${binary:Version})
 Description: Zild Database Library
  A small and easy to use database API written in C.
@@ -20,7 +21,8 @@ Description: Zild Database Library
 Package: libzdb9
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${misc:Pre-Depends}
 Suggests: libzdb9-postgresql, libzdb9-mysql, libzdb9-sqlite3
 Description:  Zild Database Library
  A small and easy to use database API written in C.
@@ -32,6 +34,7 @@ Description:  Zild Database Library
 Package: libzdb9-postgresql
 Section: libs
 Architecture: any
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb9 (>= ${binary:Version})
 Description:  Zild Database Library - PostgreSQL connectivity
  A small and easy to use database API written in C.
@@ -44,6 +47,7 @@ Description:  Zild Database Library - PostgreSQL connectivity
 Package: libzdb9-mysql
 Section: libs
 Architecture: any
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb9 (>= ${binary:Version})
 Description:  Zild Database Library - MySQL connectivity
  A small and easy to use database API written in C.
@@ -56,6 +60,7 @@ Description:  Zild Database Library - MySQL connectivity
 Package: libzdb9-sqlite3
 Section: libs
 Architecture: any
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}, libzdb9 (>= ${binary:Version})
 Description:  Zild Database Library - Sqlite3 connectivity
  A small and easy to use database API written in C.
